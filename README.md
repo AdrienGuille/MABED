@@ -19,11 +19,11 @@ Please cite this paper when using the program.
 Files in the Directory
 ----------------------
 
-input/: input files that describe the corpus in which we want to detect events
-MABED.jar: Java program that does the event detection
-README.txt: this file
-parameters.txt: Java properties file in which parameters are set
-stopwords.txt: a list of common stopwords to remove when generating the vocabulary
+- input/: input files that describe the corpus in which we want to detect events
+- MABED.jar: Java program that does the event detection
+- README.txt: this file
+- parameters.txt: Java properties file in which parameters are set
+- stopwords.txt: a list of common stopwords to remove when generating the vocabulary
 lib/: program dependencies
 
 ------------
@@ -61,6 +61,6 @@ All the parameters are set in the parameters.txt file:
 Running the program
 -------------------
 
-Requirements: JAVA (7+), a running MySQL database server (the program copies the corpus in the database)
+- Requirements: JAVA (7+), a running MySQL database server (the program copies the corpus in the database)
 
-Execute the program MABED.jar with the following command: "java -jar MABED.jar -run". It should process the input and save the output in the "ouput/" directory.
+- Execute the program MABED.jar with the following command: "java -jar MABED.jar -run". It should process the input and save the output in the "ouput/" directory.
