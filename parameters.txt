@@ -1,0 +1,19 @@
+# If you are running MABED for the first time, or if the content of the input directory has been modified, this parameter should be set to 'true', otherwise 'false'
+prepareCorpus = true
+# The length of each time-slice, expressed in minutes
+timeSliceLength = 30
+# MABED parameters
+k = 40
+p = 10
+theta = 0.7
+sigma = 0.5
+# List of stopwords that are removed from the vocabularies
+stopwords = stopwords.txt
+# Adjust support to speed up the first phase
+minSupport = 0.001
+maxSupport = 0.01
+# Database configuration
+username = root
+password = root
+host = localhost:8889
+database = mabed
