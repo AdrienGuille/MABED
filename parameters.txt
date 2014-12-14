@@ -2,6 +2,8 @@
 prepareCorpus = true
 # The length of each time-slice, expressed in minutes
 timeSliceLength = 30
+# Number of threads to use
+numberOfThreads = 3
 # MABED parameters
 k = 40
 p = 10
@@ -15,5 +17,5 @@ maxSupport = 0.01
 # Database configuration
 username = root
 password = root
-host = localhost:8889
+host = localhost
 database = mabed
