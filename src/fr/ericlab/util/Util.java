@@ -29,9 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
 
 /**
  *
@@ -70,7 +67,15 @@ public class Util {
         return date.getTime();
     }
     
-    static public double sum(double tab[], int a, int b){
+    static public int sum(short tab[], int a, int b){
+        int sum = 0;
+        for(int i = a; i <= b; i++){
+            sum += tab[i];
+        }
+        return sum;
+    }
+    
+    static public float sum(float tab[], int a, int b){
         float sum = 0;
         for(int i = a; i <= b; i++){
             sum += tab[i];
@@ -78,23 +83,24 @@ public class Util {
         return sum;
     }
     
-    static public int getTermOccurenceCount(IndexReader reader, String term){
-        try {
-            int totalFreq = 0;          
-            TermDocs termDocs = reader.termDocs();
-            termDocs.seek(new Term("content", term));
-            while(termDocs.next()){
-                totalFreq += termDocs.freq();
-            }
-            return totalFreq;
-        } catch (IOException ex) {
-            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            return 0;
+    static public float[] toFloatArray(short[] array){
+        float[] newArray = new float[array.length];
+        for(int i = 0; i < array.length; i++){
+            newArray[i] = array[i];
         }
+        return newArray;
     }
     
-    static public double[] smoothArray(double array[], int windowSize){
-        double[] smoothedArray = new double[array.length];
+    static public float[] smoothArray(float array[], int windowSize){
+        float[] smoothedArray = new float[array.length];
+        for(int i = 0; i < array.length-1; i++){
+            smoothedArray[i] = centeredMovingAverage(array, i, windowSize);
+        }
+        return smoothedArray;
+    }
+    
+    static public float[] smoothArray(short array[], int windowSize){
+        float[] smoothedArray = new float[array.length];
         for(int i = 0; i < array.length-1; i++){
             smoothedArray[i] = centeredMovingAverage(array, i, windowSize);
         }
@@ -106,7 +112,7 @@ public class Util {
         return array[array.length/2];
     }
     
-    static public double centeredMovingAverage(double[] array, int index, int windowSize){
+    static public float centeredMovingAverage(float[] array, int index, int windowSize){
         int halfWindowSize = windowSize/2;
         int possibleLeftWindow = (index >= halfWindowSize)?halfWindowSize:index;
         int possibleRightWindow = (index+halfWindowSize < array.length-1)? halfWindowSize:array.length-2-index;
@@ -115,6 +121,18 @@ public class Util {
         for(int i = i1; i <= i2; i++){
             total += array[i];
         }
-        return total/(double)(possibleLeftWindow+possibleRightWindow);
+        return total/(float)(possibleLeftWindow+possibleRightWindow);
+    }
+    
+    static public float centeredMovingAverage(short[] array, int index, int windowSize){
+        int halfWindowSize = windowSize/2;
+        int possibleLeftWindow = (index >= halfWindowSize)?halfWindowSize:index;
+        int possibleRightWindow = (index+halfWindowSize < array.length-1)? halfWindowSize:array.length-2-index;
+        int i1 = index - possibleLeftWindow, i2 = index + possibleRightWindow;
+        float total = 0;
+        for(int i = i1; i <= i2; i++){
+            total += array[i];
+        }
+        return total/(float)(possibleLeftWindow+possibleRightWindow);
     }
 }

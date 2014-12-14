@@ -17,12 +17,17 @@
 
 package fr.ericlab.mabed.structure;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 import fr.ericlab.mabed.app.Configuration;
 import fr.ericlab.util.Util;
+import indexer.GlobalIndexer;
+import java.beans.PropertyVetoException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -31,24 +36,14 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.lucene.analysis.WhitespaceAnalyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 
 /**
  *
@@ -68,29 +63,40 @@ public class Corpus {
     public int[] distribution;
     public String output;
     
-    // Lucene
-    HashMap<Integer,Integer> globalLuceneIds;
-    HashMap<Integer,Integer> mentionLuceneIds;
-    public IndexReader globalLuceneReader;
-    IndexWriter globalLuceneWriter;
-    public IndexReader mentionLuceneReader;
-    IndexWriter mentionLuceneWriter;
+    // Indexes
+    short[][] frequencyMatrix;
+    public ArrayList<String> vocabulary;
+    short[][] mentionFrequencyMatrix;
+    public ArrayList<String> mentionVocabulary;
     
     // Database
     static final int _BULK_SIZE_ = 100;
-    Connection connection;
+    ComboPooledDataSource connectionPool;
     Statement statement;
     
     public Corpus(Configuration conf){
         configuration = conf;
+        Properties p = new Properties(System.getProperties());
+        p.put("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
+        p.put("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "OFF"); // or any other
+        System.setProperties(p);
     }
        
     public void prepareCorpus(){
         try {
             System.out.println(Util.getDate()+" Preparing corpus...");
             // Connecting to DB
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            connection = DriverManager.getConnection("jdbc:mysql://"+configuration.host, configuration.username, configuration.password);
+            connectionPool = new ComboPooledDataSource();
+            connectionPool.setLogWriter(null);
+            connectionPool.setDriverClass("com.mysql.jdbc.Driver");
+            connectionPool.setJdbcUrl("jdbc:mysql://"+configuration.host);
+            connectionPool.setUser(configuration.username);
+            connectionPool.setPassword(configuration.password);
+            connectionPool.setMinPoolSize(1);
+            connectionPool.setAcquireIncrement(1);
+            connectionPool.setMaxPoolSize(configuration.numberOfThreads+1);
+            Connection connection = connectionPool.getConnection();
+            
             statement = connection.createStatement();
             statement.executeUpdate("USE "+configuration.database);
             ResultSet rs = statement.executeQuery("SHOW TABLES LIKE 'messages';");
@@ -100,18 +106,31 @@ public class Corpus {
             }
             statement.executeUpdate("CREATE TABLE "+configuration.database+".messages ( id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, time_slice INT, msg_post_time TIMESTAMP, msg_text VARCHAR(200) CHARACTER SET utf8 COLLATE utf8_unicode_ci) CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=myisam;");
             // Preparing time-slices
-            nbTimeSlices = new File("input/").list().length/2;
-            // Formatter for input files names
+            String[] fileArray = new File("input/").list();
+            nbTimeSlices = 0;
             NumberFormat formatter = new DecimalFormat("00000000");
+            ArrayList<Integer> list = new ArrayList<>();
+            for(String filename : fileArray){
+                if(filename.endsWith(".text")){
+                    try {
+                        list.add(formatter.parse(filename.substring(0, 8)).intValue());
+                    } catch (ParseException ex) {
+                        Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    nbTimeSlices++;
+                }
+            }
+            int a = Collections.min(list), b = Collections.max(list);
+            // Formatter for input files names
             LineIterator it = null;
             try {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
-                it = FileUtils.lineIterator(new File("input/"+formatter.format(1)+".time"), "UTF-8");
+                it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
                 if(it.hasNext()) {
                     Date parsedDate = dateFormat.parse(it.nextLine());
                     startTimestamp = new java.sql.Timestamp(parsedDate.getTime());
                 }
-                it = FileUtils.lineIterator(new File("input/"+formatter.format(nbTimeSlices)+".time"), "UTF-8");
+                it = FileUtils.lineIterator(new File("input/"+formatter.format(b)+".time"), "UTF-8");
                 String lastLine = "";
                 while(it.hasNext()) {
                     lastLine = it.nextLine();
@@ -123,39 +142,21 @@ public class Corpus {
             } finally {
                 LineIterator.closeQuietly(it);
             }
-            // Preparing directories
-            if(new File("index/global").exists()){
-                FileUtils.deleteDirectory(new File("index/global"));
-            }
-            if(new File("index/mention").exists()){
-                FileUtils.deleteDirectory(new File("index/mention"));
-            }
-            File globalIndexDirectory = new File("index/global");
-            globalIndexDirectory.mkdir();
-            File mentionIndexDirectory = new File("index/mention");
-            mentionIndexDirectory.mkdir();
-            // Creating Lucene indexes
-            FSDirectory globalLuceneIndex = FSDirectory.open(globalIndexDirectory);
-            FSDirectory mentionLuceneIndex = FSDirectory.open(mentionIndexDirectory);
-            org.apache.lucene.analysis.StopwordAnalyzerBase analyzer;
-            analyzer = new StandardAnalyzer(Version.LUCENE_36);
-            IndexWriterConfig globalLuceneConfig = new IndexWriterConfig(Version.LUCENE_36, analyzer);
-            IndexWriterConfig mentionLuceneConfig = new IndexWriterConfig(Version.LUCENE_36, analyzer);
-            globalLuceneWriter = new IndexWriter(globalLuceneIndex, globalLuceneConfig);
-            mentionLuceneWriter = new IndexWriter(mentionLuceneIndex, mentionLuceneConfig);
-            LinkedList<Double> steps = new LinkedList<>();
-            steps.add(0.75);
-            steps.add(0.50);
-            steps.add(0.25);
-            statement = connection.createStatement();
             System.out.print("   - Scanning input");
-            for(int i = 1; i <= nbTimeSlices; i++){
-                if((steps.size() > 0) && ((double)i/(double)nbTimeSlices) > steps.getLast()){
-                    System.out.print(", "+(int)(steps.getLast()*100)+"% done");
-                    steps.removeLast();
-                }
-                String globalDocContent = new String();
-                String mentionDocContent = new String();
+            GlobalIndexer indexer = new GlobalIndexer(configuration.numberOfThreads,false);
+            try {
+                indexer.index("input/", configuration.stopwords);
+            } catch (    InterruptedException | IOException ex) {
+                Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            indexer = new GlobalIndexer(configuration.numberOfThreads,true);
+            try {
+                indexer.index("input/", configuration.stopwords);
+            } catch (    InterruptedException | IOException ex) {
+                Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            statement = connection.createStatement();
+            for(int i = a; i <= b; i++){
                 String message = "";
                 LineIterator itText = null, itTime = null;
                 try {
@@ -166,9 +167,6 @@ public class Corpus {
                     while (itTime.hasNext()) {
                         message = itText.nextLine();
                         bulk++;
-                        if(message.contains("@")){
-                            mentionDocContent += message+"\n";
-                        }
                         if(bulk < _BULK_SIZE_){
                             bulkString += " ("+i+",'"+itTime.nextLine()+"',\""+message+"\"),";
                         }else{
@@ -177,7 +175,6 @@ public class Corpus {
                             statement.executeUpdate("INSERT INTO "+configuration.database+".messages (time_slice,msg_post_time,msg_text) VALUES"+bulkString);
                             bulkString = "";
                         }
-                        globalDocContent += message+"\n";
                     }
                     if(bulk > 0){
                         statement.executeUpdate("INSERT INTO "+configuration.database+".messages (time_slice,msg_post_time,msg_text) VALUES"+bulkString.substring(0,bulkString.length()-1)+";");
@@ -188,33 +185,17 @@ public class Corpus {
                     LineIterator.closeQuietly(itText);
                     LineIterator.closeQuietly(itTime);
                 }
-                // add document to global index
-                Document globalDoc = new Document();
-                globalDoc.add(new Field("content", globalDocContent, Field.Store.YES, Field.Index.ANALYZED,Field.TermVector.YES));
-                globalDoc.add(new Field("id", Integer.toString(i), Field.Store.YES, Field.Index.NOT_ANALYZED));
-                globalLuceneWriter.addDocument(globalDoc);
-                globalLuceneWriter.commit();
-                // add document to mention index
-                Document mentionDoc = new Document();
-                mentionDoc.add(new Field("content", mentionDocContent, Field.Store.YES, Field.Index.ANALYZED,Field.TermVector.YES));
-                mentionDoc.add(new Field("id", Integer.toString(i), Field.Store.YES, Field.Index.NOT_ANALYZED));
-                mentionLuceneWriter.addDocument(mentionDoc);
-                mentionLuceneWriter.commit();
             }
             System.out.println(", 100% done.");
             statement.executeUpdate("CREATE INDEX index_time_slice ON "+configuration.database+".messages (time_slice);");
             statement.close();
             connection.close();
-            globalLuceneWriter.close();
-            mentionLuceneWriter.close();
-        } catch (IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException | InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+        } catch (SQLException | PropertyVetoException ex) {
             Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void loadCorpus(){
+    public void loadCorpus(boolean parallelized){
         output = "";
         if(configuration.prepareCorpus){
             prepareCorpus();
@@ -222,11 +203,34 @@ public class Corpus {
         try {
             // Connecting to DB
             Class.forName("com.mysql.jdbc.Driver").newInstance();
-            connection = DriverManager.getConnection("jdbc:mysql://"+configuration.host, configuration.username, configuration.password);
+            connectionPool = new ComboPooledDataSource();
+            connectionPool.setLogWriter(null);
+            connectionPool.setDriverClass("com.mysql.jdbc.Driver");
+            connectionPool.setJdbcUrl("jdbc:mysql://"+configuration.host);
+            connectionPool.setUser(configuration.username);
+            connectionPool.setPassword(configuration.password);
+            connectionPool.setMinPoolSize(1);
+            connectionPool.setAcquireIncrement(1);
+            connectionPool.setMaxPoolSize(configuration.numberOfThreads*2);
+            Connection connection = connectionPool.getConnection();
             statement = connection.createStatement();
             // Getting basic properties
-            nbTimeSlices = new File("input/").list().length/2;
-            distribution = new int[nbTimeSlices+1];
+            String[] fileArray = new File("input/").list();
+            nbTimeSlices = 0;
+            NumberFormat formatter = new DecimalFormat("00000000");
+            ArrayList<Integer> list = new ArrayList<>();
+            for(String filename : fileArray){
+                if(filename.endsWith(".text")){
+                    try {
+                        list.add(formatter.parse(filename.substring(0, 8)).intValue());
+                    } catch (ParseException ex) {
+                        Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    nbTimeSlices++;
+                }
+            }
+            int a = Collections.min(list), b = Collections.max(list);
+            distribution = new int[nbTimeSlices];
             ResultSet rs = statement.executeQuery("SELECT time_slice, count(*) FROM "+configuration.database+".messages group by time_slice;");
             nbMessages = 0;
             while(rs.next()){
@@ -234,16 +238,15 @@ public class Corpus {
                 nbMessages += rs.getInt(2);
             }
             // Formatter for input files names
-            NumberFormat formatter = new DecimalFormat("00000000");
             LineIterator it = null;
             try {
-                it = FileUtils.lineIterator(new File("input/"+formatter.format(1)+".time"), "UTF-8");
+                it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
                 if(it.hasNext()) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
                     Date parsedDate = dateFormat.parse(it.nextLine());
                     startTimestamp = new java.sql.Timestamp(parsedDate.getTime());
                 }
-                it = FileUtils.lineIterator(new File("input/"+formatter.format(nbTimeSlices)+".time"), "UTF-8");
+                it = FileUtils.lineIterator(new File("input/"+formatter.format(b)+".time"), "UTF-8");
                 String timestamp = "";
                 while(it.hasNext()) {
                     timestamp = it.nextLine();
@@ -256,37 +259,31 @@ public class Corpus {
             } finally {
                 LineIterator.closeQuietly(it);
             }
-            // Preparing directories
-            File globalIndexDirectory = new File("index/global");
-            File mentionIndexDirectory = new File("index/mention");
-            // Loading Lucene indexes
-            FSDirectory globalLuceneIndex = FSDirectory.open(globalIndexDirectory);
-            FSDirectory mentionLuceneIndex = FSDirectory.open(mentionIndexDirectory);
-            org.apache.lucene.analysis.StopwordAnalyzerBase analyzer;
-            analyzer = new StandardAnalyzer(Version.LUCENE_36);
-            WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer(Version.LUCENE_36);
-            IndexWriterConfig globalLuceneConfig = new IndexWriterConfig(Version.LUCENE_36, whitespaceAnalyzer);
-            IndexWriterConfig mentionLuceneConfig = new IndexWriterConfig(Version.LUCENE_36, whitespaceAnalyzer);
-            globalLuceneWriter = new IndexWriter(globalLuceneIndex, globalLuceneConfig);
-            mentionLuceneWriter = new IndexWriter(mentionLuceneIndex, mentionLuceneConfig);
-            mentionLuceneReader = IndexReader.open(mentionLuceneWriter, true);
-            globalLuceneReader = IndexReader.open(globalLuceneWriter, true);
-            loaded = true;
-            nbTimeSlices = globalLuceneReader.numDocs();
-            globalLuceneIds = new HashMap<>();
-            mentionLuceneIds = new HashMap<>();
-            for (int i = 0; i < globalLuceneReader.maxDoc() || i < mentionLuceneReader.maxDoc(); i++) {
-                Document globalDoc = globalLuceneReader.document(i);
-                Document mentionDoc = mentionLuceneReader.document(i);
-                if(globalDoc != null) {
-                    globalDoc.get("id");
-                    globalLuceneIds.put(i,Integer.parseInt(globalDoc.get("id")));
-                }
-                if(mentionDoc != null) {
-                    mentionDoc.get("id");
-                    mentionLuceneIds.put(i,Integer.parseInt(mentionDoc.get("id")));
-                }
+            
+            // load indexes
+            try {
+                // Global index
+                FileInputStream fisMatrix = new FileInputStream("input/indexes/frequencyMatrix.dat");
+                ObjectInputStream oisMatrix = new ObjectInputStream(fisMatrix);
+                frequencyMatrix = (short[][]) oisMatrix.readObject();
+                FileInputStream fisVocabulary = new FileInputStream("input/indexes/vocabulary.dat");
+                ObjectInputStream oisVocabulary = new ObjectInputStream(fisVocabulary);
+                vocabulary = (ArrayList<String>) oisVocabulary.readObject();
+                // Mention index
+                FileInputStream fisMentionMatrix = new FileInputStream("input/indexes/mentionFrequencyMatrix.dat");
+                ObjectInputStream oisMentionMatrix = new ObjectInputStream(fisMentionMatrix);
+                mentionFrequencyMatrix = (short[][]) oisMentionMatrix.readObject();
+                FileInputStream fisMentionVocabulary = new FileInputStream("input/indexes/mentionVocabulary.dat");
+                ObjectInputStream oisMentionVocabulary = new ObjectInputStream(fisMentionVocabulary);
+                mentionVocabulary = (ArrayList<String>) oisMentionVocabulary.readObject();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
             }
+            statement.close();
+            connection.close();
+
             DecimalFormat df = new DecimalFormat("#,###");
             System.out.println(Util.getDate()+" Loaded corpus:");
             output += Util.getDate()+" Loaded corpus:\n";
@@ -297,102 +294,42 @@ public class Corpus {
             info +="   - number of messages: "+df.format(nbMessages);
             output += info;
             System.out.println(info);
-        } catch (IOException ex) {
+        } catch (SQLException | ClassNotFoundException | PropertyVetoException | InstantiationException | IllegalAccessException ex) {
             Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException | InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-        
-    public double[] getMentionFrequency(TermDocs termDocs){
-        try {
-            double[] array = new double[nbTimeSlices];
-            while(termDocs.next()){
-                int freq = termDocs.freq();
-                int doc = termDocs.doc();
-                int id = mentionLuceneIds.get(doc);
-                array[id-1] = freq;
-            }
-            return array;
-        } catch (IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
         }
     }
     
-    public double[] getGlobalFrequency(TermDocs termDocs){
-        try {
-            double[] array = new double[nbTimeSlices];
-            while(termDocs.next()){
-                int freq = termDocs.freq();
-                int doc = termDocs.doc();
-                int id = globalLuceneIds.get(doc);
-                array[id-1] = freq;
-            }
-            return array;
-        } catch (IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+    public short[] getMentionFrequency(int i){
+        return mentionFrequencyMatrix[i];
     }
     
-    public double[] getMentionFrequency(String term){
-        try {
-            TermDocs termDocs = mentionLuceneReader.termDocs();
-            int numDocs = mentionLuceneReader.numDocs();
-            termDocs.seek(new Term("content", term));
-                if(term!=null){
-                    double[] array = new double[numDocs];
-                    while(termDocs.next()){
-                        int doc = termDocs.doc();
-                        double freq = termDocs.freq();
-                        int id = mentionLuceneIds.get(doc);
-                        array[id-1] = freq;
-                    }
-                    return array;
-            }else{
-                return new double[numDocs];
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
-    }
-    
-    public double[] getGlobalFrequency(String term){
-        try {
-            TermDocs termDocs = globalLuceneReader.termDocs();
-            int numDocs = globalLuceneReader.numDocs();
-            termDocs.seek(new Term("content", term));
-                if(term!=null){
-                    double[] array = new double[numDocs+1];
-                    while(termDocs.next()){
-                        int doc = termDocs.doc();
-                        double freq = termDocs.freq();
-                        int id = globalLuceneIds.get(doc);
-                        array[id-1] = freq;
-                    }
-                    return array;
-            }else{
-                return new double[numDocs];
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
+    public short[] getGlobalFrequency(String term){
+        int i = vocabulary.indexOf(term);
+        if(i == -1){
+            return new short[nbTimeSlices];
+        }else{
+            return frequencyMatrix[i];
         }
     }
     
     public String getMessages(Event simpleEvent){
+        String query = "";
         try {
-            statement = connection.createStatement();
-            // Getting messages
-            String messages = "";
-            ResultSet rs = statement.executeQuery("select msg_text from "+configuration.database+".messages where time_slice>="+simpleEvent.I.timeSliceA+" and time_slice<="+simpleEvent.I.timeSliceB+" and msg_text like '% "+simpleEvent.mainTerm+" %';");
-            while(rs.next()){
-                messages += rs.getString(1)+"\n";
+            Connection connection = connectionPool.getConnection();
+            synchronized(connection){
+                statement = connection.createStatement();
+                // Getting messages
+                String messages = "";
+                String mainTerm = simpleEvent.mainTerm.replace("'","\\'");
+                query = "select msg_text from "+configuration.database+".messages where time_slice>="+simpleEvent.I.timeSliceA+" and time_slice<="+simpleEvent.I.timeSliceB+" and msg_text like '% "+mainTerm+" %';";
+                ResultSet rs = statement.executeQuery(query);
+                while(rs.next()){
+                    messages += rs.getString(1)+"\n";
+                }
+                statement.close();
+                connection.close();
+                return messages;
             }
-            statement.close();
-            return messages;
         } catch (SQLException ex) {
             Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
         }

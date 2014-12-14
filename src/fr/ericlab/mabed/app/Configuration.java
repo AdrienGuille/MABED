@@ -29,6 +29,9 @@ import java.util.Properties;
  */
 public class Configuration {
     
+    // Parallel
+    public int numberOfThreads;
+    
     // Corpus
     public boolean prepareCorpus;
     public int timeSliceLength;
@@ -70,6 +73,7 @@ public class Configuration {
                 password = prop.getProperty("password");
                 host = prop.getProperty("host");
                 database = prop.getProperty("database");
+                numberOfThreads = Integer.parseInt(prop.getProperty("numberOfThreads"));
             }
         }
     }
