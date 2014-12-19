@@ -24,7 +24,7 @@ Files in the Directory
 - README.txt: this file
 - parameters.txt: Java properties file in which parameters are set
 - stopwords.txt: a list of common stopwords to remove when generating the vocabulary
-lib/: program dependencies
+- lib/: program dependencies
 
 ------------
 Input Format
@@ -45,7 +45,7 @@ All the parameters are set in the parameters.txt file:
 
 1. prepareCorpus (boolean): if you are running MABED for the first time, or if the content of the input directory has been modified, this parameter should be set to 'true', otherwise 'false'.
 2. timeSliceLength (int): length of each time-slice, expressed in minutes (e.g. 30);
-3. numberOfThreads (int): the number of threads used by MABED (if > 1, then the parallel implementation of MABED is executed)
+3. numberOfThreads (int): the number of threads used by MABED (if > 1, then the parallelized implementation of MABED is executed)
 4. k (int): desired number of events (e.g. 40);
 5. p (int): maximum number of related words describing each event (e.g. 10);
 6. theta (double): minimum weight of each related word (e.g. 0.7);
@@ -53,15 +53,11 @@ All the parameters are set in the parameters.txt file:
 8. stopwords (String): name of the file that lists the stopwords, one word per line (e.g. stopwords.txt);
 9. minSupport (double): minimum support of words in the vocabulary (e.g. 0)
 10. maxSupport (double): maximum support of words in the vocabulary (e.g. 1)
-11. username (String): database username
-12. password (String): database password
-13. host (String): database host
-14. database (String): database name
 
 -------------------
 Running the program
 -------------------
 
-- Requirements: JAVA (7+), a running MySQL database server (the program copies the corpus in the database)
+- Requirements: JAVA (7+)
 
 - Execute the program MABED.jar with the following command: "java -jar MABED.jar -run". It should process the input and save the output in the "ouput/" directory.

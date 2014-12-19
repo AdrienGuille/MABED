@@ -26,15 +26,9 @@ import fr.ericlab.mabed.structure.TimeInterval;
 import fr.ericlab.util.Util;
 import fr.ericlab.mabed.structure.EventGraph;
 import indexer.Indexer;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -68,7 +62,7 @@ final public class MABED {
         
         // Get basic events
         long startP1 = Util.getTime();
-        EventList basicEvents = getSimpleEvents((int)(configuration.minSupport*corpus.nbMessages), (int)(configuration.maxSupport*corpus.nbMessages));
+        EventList basicEvents = getSimpleEvents((int)(configuration.minSupport*corpus.messageCount), (int)(configuration.maxSupport*corpus.messageCount));
         basicEvents.sort();
         long endP1 = Util.getTime();
         
@@ -115,12 +109,12 @@ final public class MABED {
         
         // Phase 1
         long startP1 = Util.getTime();
-        System.out.println(Util.getDate()+" Detection of events based on mention anomaly...");
+        System.out.println(Util.getDate()+" Detecting events based on mention anomaly...");
         LinkedList<Component1> c1Threads = new LinkedList<>();
         int numberOfWordsPerThread = corpus.mentionVocabulary.size()/configuration.numberOfThreads;                
         for(int i = 0; i < configuration.numberOfThreads; i++){
             int upperBound = (i==configuration.numberOfThreads-1)?corpus.mentionVocabulary.size()-1:numberOfWordsPerThread*(i+1);
-            c1Threads.add(new Component1(i,corpus,numberOfWordsPerThread*i+1,upperBound,(int)(configuration.minSupport*corpus.nbMessages),(int)(configuration.maxSupport*corpus.nbMessages)));
+            c1Threads.add(new Component1(i,corpus,numberOfWordsPerThread*i+1,upperBound,(int)(configuration.minSupport*corpus.messageCount),(int)(configuration.maxSupport*corpus.messageCount)));
             c1Threads.get(i).start();
         }
         for(Component1 c1 : c1Threads){
@@ -143,7 +137,7 @@ final public class MABED {
         if(basicEvents.size() > 0){
             eventGraph = new EventGraph(corpus, basicEvents.get(0).score, configuration.sigma);
             System.out.print("   - k: ");
-            while(nbFinalEvents < configuration.k && i < basicEvents.size()){
+            while(nbFinalEvents < configuration.k && i < basicEvents.size()-configuration.numberOfThreads){
                 int numberOfC2Threads = ((configuration.k - nbFinalEvents)<=configuration.numberOfThreads)?(configuration.k-nbFinalEvents):configuration.numberOfThreads;
                 Event[] refinedEvents = new Event[numberOfC2Threads];
                 LinkedList<Component2> c2Threads = new LinkedList<>();
@@ -183,7 +177,7 @@ final public class MABED {
     }
     
     float expectation(int timeSlice, float tmf){
-        return corpus.distribution[timeSlice]*(tmf/corpus.nbMessages);
+        return corpus.distribution[timeSlice]*(tmf/corpus.messageCount);
     }
     
     float anomaly(float expectation, float real){
@@ -227,7 +221,7 @@ final public class MABED {
     }
         
     EventList getSimpleEvents(int minTermOccur, int maxTermOccur){
-        System.out.println(Util.getDate()+" Scanning messages (minTermOccur = "+minTermOccur+", maxTermOccur = "+maxTermOccur+")...");
+        System.out.println(Util.getDate()+" Detecting events based on mention anomaly...");
         EventList simpleEvents = new EventList();
         int m = corpus.nbTimeSlices;
         for(int t = 0; t < corpus.mentionVocabulary.size(); t++){

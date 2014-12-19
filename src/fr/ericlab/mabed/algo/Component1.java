@@ -50,7 +50,7 @@ public class Component1 extends Thread {
     }
     
     float expectation(int timeSlice, float tmf){
-        return corpus.distribution[timeSlice]*(tmf/corpus.nbMessages);
+        return corpus.distribution[timeSlice]*(tmf/corpus.messageCount);
     }
     
     float anomaly(float expectation, float real){

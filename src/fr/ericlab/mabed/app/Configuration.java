@@ -45,12 +45,6 @@ public class Configuration {
     public double minSupport;
     public double maxSupport;
     
-    // Database
-    public String username;
-    public String password;
-    public String host;
-    public String database;
-    
     public Configuration() throws IOException{
         File inputFile = new File("parameters.txt");
         Properties prop = new Properties();
@@ -69,10 +63,6 @@ public class Configuration {
                 minSupport = Double.parseDouble(prop.getProperty("minSupport"));
                 maxSupport = Double.parseDouble(prop.getProperty("maxSupport"));
                 stopwords = prop.getProperty("stopwords");
-                username = prop.getProperty("username");
-                password = prop.getProperty("password");
-                host = prop.getProperty("host");
-                database = prop.getProperty("database");
                 numberOfThreads = Integer.parseInt(prop.getProperty("numberOfThreads"));
             }
         }
