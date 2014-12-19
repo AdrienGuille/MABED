@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -72,13 +73,12 @@ public class Corpus {
     // Database
     static final int _BULK_SIZE_ = 100;
     ComboPooledDataSource connectionPool;
-    Statement statement;
     
     public Corpus(Configuration conf){
         configuration = conf;
         Properties p = new Properties(System.getProperties());
         p.put("com.mchange.v2.log.MLog", "com.mchange.v2.log.FallbackMLog");
-        p.put("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "OFF"); // or any other
+        p.put("com.mchange.v2.log.FallbackMLog.DEFAULT_CUTOFF_LEVEL", "OFF");
         System.setProperties(p);
     }
        
@@ -97,7 +97,7 @@ public class Corpus {
             connectionPool.setMaxPoolSize(configuration.numberOfThreads+1);
             Connection connection = connectionPool.getConnection();
             
-            statement = connection.createStatement();
+            Statement statement = connection.createStatement();
             statement.executeUpdate("USE "+configuration.database);
             ResultSet rs = statement.executeQuery("SHOW TABLES LIKE 'messages';");
             boolean tableExists = rs.next();
@@ -165,7 +165,7 @@ public class Corpus {
                     int bulk = 0;
                     String bulkString = "";
                     while (itTime.hasNext()) {
-                        message = itText.nextLine();
+                        message = itText.nextLine().replace("'"," ").replace("\""," ").replace("%"," ").replace("\\"," ");
                         bulk++;
                         if(bulk < _BULK_SIZE_){
                             bulkString += " ("+i+",'"+itTime.nextLine()+"',\""+message+"\"),";
@@ -213,7 +213,7 @@ public class Corpus {
             connectionPool.setAcquireIncrement(1);
             connectionPool.setMaxPoolSize(configuration.numberOfThreads*2);
             Connection connection = connectionPool.getConnection();
-            statement = connection.createStatement();
+            Statement statement = connection.createStatement();
             // Getting basic properties
             String[] fileArray = new File("input/").list();
             nbTimeSlices = 0;
@@ -283,7 +283,6 @@ public class Corpus {
             }
             statement.close();
             connection.close();
-
             DecimalFormat df = new DecimalFormat("#,###");
             System.out.println(Util.getDate()+" Loaded corpus:");
             output += Util.getDate()+" Loaded corpus:\n";
@@ -313,23 +312,20 @@ public class Corpus {
     }
     
     public String getMessages(Event simpleEvent){
-        String query = "";
         try {
             Connection connection = connectionPool.getConnection();
-            synchronized(connection){
-                statement = connection.createStatement();
-                // Getting messages
-                String messages = "";
-                String mainTerm = simpleEvent.mainTerm.replace("'","\\'");
-                query = "select msg_text from "+configuration.database+".messages where time_slice>="+simpleEvent.I.timeSliceA+" and time_slice<="+simpleEvent.I.timeSliceB+" and msg_text like '% "+mainTerm+" %';";
-                ResultSet rs = statement.executeQuery(query);
-                while(rs.next()){
-                    messages += rs.getString(1)+"\n";
-                }
-                statement.close();
-                connection.close();
-                return messages;
+            Statement statement = connection.createStatement();
+            // Getting messages
+            String messages = "";
+            String mainTerm = simpleEvent.mainTerm.replace("'"," ").replace("\""," ").replace("%"," ").replace("\\"," ");
+            String query = "select msg_text from "+configuration.database+".messages where time_slice>="+simpleEvent.I.timeSliceA+" and time_slice<="+simpleEvent.I.timeSliceB+" and msg_text like '% "+mainTerm+" %';";
+            ResultSet rs = statement.executeQuery(query);
+            while(rs.next()){
+                messages += rs.getString(1)+"\n";
             }
+            statement.close();
+            connection.close();
+            return messages;
         } catch (SQLException ex) {
             Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
         }

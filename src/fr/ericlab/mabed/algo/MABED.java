@@ -77,8 +77,6 @@ final public class MABED {
         int nbFinalEvents = 0;
         int i = 0;
         long startP2 = Util.getTime();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        long theTime = 0;
         if(basicEvents.size() > 0){
             eventGraph = new EventGraph(corpus, basicEvents.get(0).score, configuration.sigma);
             System.out.print("   - k: ");
@@ -88,12 +86,6 @@ final public class MABED {
                     int previousNb = nbFinalEvents;
                     nbFinalEvents += eventGraph.addEvent(event);
                     if(nbFinalEvents > previousNb){
-                        try {
-                            Date startDate = dateFormat.parse("2009-11-01 00:00:00");
-                            theTime = startDate.getTime();
-                        } catch (ParseException ex) {
-                            Logger.getLogger(MABED.class.getName()).log(Level.SEVERE, null, ex);
-                        }
                         System.out.print(" "+nbFinalEvents);
                     }
                 }
@@ -129,9 +121,7 @@ final public class MABED {
         for(int i = 0; i < configuration.numberOfThreads; i++){
             int upperBound = (i==configuration.numberOfThreads-1)?corpus.mentionVocabulary.size()-1:numberOfWordsPerThread*(i+1);
             c1Threads.add(new Component1(i,corpus,numberOfWordsPerThread*i+1,upperBound,(int)(configuration.minSupport*corpus.nbMessages),(int)(configuration.maxSupport*corpus.nbMessages)));
-        }
-        for(Component1 c1 : c1Threads){
-            c1.start();
+            c1Threads.get(i).start();
         }
         for(Component1 c1 : c1Threads){
             c1.join();
@@ -150,19 +140,16 @@ final public class MABED {
         int nbFinalEvents = 0;
         int i = 0;
         long startP2 = Util.getTime();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        long theTime = 0;
         if(basicEvents.size() > 0){
             eventGraph = new EventGraph(corpus, basicEvents.get(0).score, configuration.sigma);
             System.out.print("   - k: ");
             while(nbFinalEvents < configuration.k && i < basicEvents.size()){
-                Event[] refinedEvents = new Event[configuration.numberOfThreads];
+                int numberOfC2Threads = ((configuration.k - nbFinalEvents)<=configuration.numberOfThreads)?(configuration.k-nbFinalEvents):configuration.numberOfThreads;
+                Event[] refinedEvents = new Event[numberOfC2Threads];
                 LinkedList<Component2> c2Threads = new LinkedList<>();
-                for(int j = 0; j < configuration.numberOfThreads; j++){
+                for(int j = 0; j < numberOfC2Threads; j++){
                     c2Threads.add(new Component2(j,corpus,basicEvents.get(i+j),configuration.p,configuration.theta));
-                }
-                for(Component2 c2 : c2Threads){
-                    c2.start();
+                    c2Threads.get(j).start();
                 }
                 for(Component2 c2 : c2Threads){
                     c2.join();
@@ -175,12 +162,6 @@ final public class MABED {
                         int previousNb = nbFinalEvents;
                         nbFinalEvents += eventGraph.addEvent(refinedEvent);
                         if(nbFinalEvents > previousNb){
-                            try {
-                                Date startDate = dateFormat.parse("2009-11-01 00:00:00.00");
-                                theTime = startDate.getTime();
-                            } catch (ParseException ex) {
-                                Logger.getLogger(MABED.class.getName()).log(Level.SEVERE, null, ex);
-                            }
                             System.out.print(" "+nbFinalEvents);
                         }
                     }
@@ -231,7 +212,7 @@ final public class MABED {
     Event getRefinedEvent(Corpus corpus, Event basicEvent, int p, double theta){
         Event refinedEvent = new Event();
         Indexer indexer = new Indexer();
-        ArrayList<String> candidateWords = indexer.getMostFrequentWords(corpus.getMessages(basicEvent), p);
+        ArrayList<String> candidateWords = indexer.getMostFrequentWords(corpus.getMessages(basicEvent),basicEvent.mainTerm,p);
         short ref[] = corpus.getGlobalFrequency(basicEvent.mainTerm);
         short comp[];
         refinedEvent = new Event(basicEvent.mainTerm, basicEvent.I, basicEvent.score, basicEvent.anomaly);

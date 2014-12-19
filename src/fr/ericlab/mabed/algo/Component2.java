@@ -67,7 +67,7 @@ public class Component2 extends Thread {
     public void run(){
         refinedEvent = new Event();
         Indexer indexer = new Indexer();
-        ArrayList<String> candidateWords = indexer.getMostFrequentWords(corpus.getMessages(basicEvent), candidateWordSetSize);
+        ArrayList<String> candidateWords = indexer.getMostFrequentWords(corpus.getMessages(basicEvent),basicEvent.mainTerm,candidateWordSetSize);
         short ref[] = corpus.getGlobalFrequency(basicEvent.mainTerm);
         short comp[];
         refinedEvent = new Event(basicEvent.mainTerm, basicEvent.I, basicEvent.score, basicEvent.anomaly);
