@@ -15,7 +15,6 @@ Details of this program are described in the following paper:
 
 Please cite this paper when using the program.
 
-----------------------
 Files in the Directory
 ----------------------
 
@@ -26,18 +25,16 @@ Files in the Directory
 - stopwords.txt: a list of common stopwords to remove when generating the vocabulary
 - lib/: program dependencies
 
-------------
 Input Format
 ------------
 
 The program expects two sets of files in the "input/" directory:
 
 1. <time_slice>.text: content of the messages, one line per message;
-2. <time_slice>.time: timestamp of the messages, each line maps to the message that has the same line number in <time_slice>.text. Timestamps should be formatted according to this format: YYYY-MM-DD HH:mm:ss.S (e.g. 2009-11-01 00:01:24.0)
+2. <time_slice>.time: timestamp of the messages, each line maps to the message that has the same line number in <time_slice>.text. Timestamps should be formatted according to this format: YYYY-MM-DD HH:mm:ss (e.g. 2009-11-01 00:01:24)
 
 Time-slices are expected to be numbered starting from 0 and files are expected to be named with 8 digits (e.g. 00000000.text, 00000000.time, 00000001.text, 00000001.time) 
 
------------------
 Parameter Setting
 -----------------
 
@@ -54,10 +51,8 @@ All the parameters are set in the parameters.txt file:
 9. minSupport (double): minimum support of words in the vocabulary (e.g. 0)
 10. maxSupport (double): maximum support of words in the vocabulary (e.g. 1)
 
--------------------
 Running the program
 -------------------
 
 - Requirements: JAVA (7+)
-
 - Execute the program MABED.jar with the following command: "java -jar MABED.jar -run". It should process the input and save the output in the "ouput/" directory.

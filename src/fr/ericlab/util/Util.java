@@ -58,7 +58,7 @@ public class Util {
     static public String getDate(){
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         Date date = new Date();
-        String dateString = dateFormat.format(date).toString(); 
+        String dateString = dateFormat.format(date); 
         return dateString;
     }
     

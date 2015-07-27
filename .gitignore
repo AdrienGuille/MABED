@@ -1,0 +1,15 @@
+/nbproject/private/
+manifest.mf
+
+nbbuild.xml
+
+nbproject/build-impl.xml
+
+nbproject/genfiles.properties
+
+nbproject/project.properties
+
+nbproject/project.xml
+/build/
+/dist/
+dist/lib/commons-io-2.4.jar

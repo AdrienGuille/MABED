@@ -20,13 +20,10 @@ package fr.ericlab.mabed.structure;
 import fr.ericlab.mabed.algo.MABED;
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -137,80 +134,4 @@ public class EventList {
             }
         }
     }
-    
-    public String topKHtmlListRealtime(Corpus dataset, String lang, int topK, Date date){
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM HH:mm");
-        Calendar cal = Calendar.getInstance();
-        String html = "<html>\n" +
-            "<head>\n" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"/>\n" +
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"../../css/style.css\"/>\n" +
-            "<style>body{background:none;}</style>\n"    +
-            "</head>\n" +
-            "<body>\n" +
-            "<div id=\"wrapper\" style=\"background-color:#fff; width:900px;\">\n" +
-            "	<center><newstitle>Les 3 thématiques les plus saillantes au cours des 60 dernières minutes (liste générée le "+dateFormat.format(date.getTime())+")</newstitle></center>\n" +
-            "	<div>\n" +
-            "		<ol>\n";
-        String relatedTermsStr = "related terms: ";
-        SimpleDateFormat  simpleFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        if(lang.contains("FR")){
-            relatedTermsStr = "termes liés : ";
-            simpleFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        }
-        if(topK == 0){
-            topK = 1000000000;
-        }
-        for(int i = 0; i < topK && i < list.size(); i++){
-            Event t = list.get(i);
-            Date startDate = new Date(dataset.toDate(t.I.timeSliceA).getTime());
-            Date endDate = new Date(dataset.toDate(t.I.timeSliceB).getTime());
-            html += "<li><newstitle>"+t.mainTerm+" ("+simpleFormat.format(startDate)+" - "+simpleFormat.format(endDate)+")</newstitle><br><newscontent>"+relatedTermsStr+t.relatedTermAsList()+"</newscontent></li>\n";
-        }
-        html += "</ol>\n" +
-            "	</div>\n" +
-            "</div>\n" +
-            "</body>\n" +
-            "</html>";
-        return html;
-    }
-    
-    
-    public String topKHtmlList(Corpus dataset, String lang, int topK, Date date){
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM HH:mm");
-        Calendar cal = Calendar.getInstance();
-        String html = "<html>\n" +
-            "<head>\n" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"/>\n" +
-            "<link rel=\"stylesheet\" type=\"text/css\" href=\"../../css/style.css\"/>\n" +
-            "<style>body{background:none;}</style>\n"    +
-            "</head>\n" +
-            "<body>\n" +
-            "<div id=\"wrapper\" style=\"background-color:#fff; width:900px;\">\n" +
-            "	<center><newstitle>Les 5 thématiques les plus populaires au cours des dernières 24 heures (liste générée le "+dateFormat.format(date.getTime())+")</newstitle></center>\n" +
-            "	<div>\n" +
-            "		<ol>\n";
-        String relatedTermsStr = "related terms: ";
-        SimpleDateFormat  simpleFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        if(lang.contains("FR")){
-            relatedTermsStr = "termes liés : ";
-            simpleFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        }
-        if(topK == 0){
-            topK = 1000000000;
-        }
-        for(int i = 0; i < topK && i < list.size(); i++){
-            Event t = list.get(i);
-            Date startDate = new Date(dataset.toDate(t.I.timeSliceA).getTime());
-            Date endDate = new Date(dataset.toDate(t.I.timeSliceB).getTime());
-            html += "<li><newstitle>"+t.mainTerm+" ("+simpleFormat.format(startDate)+" - "+simpleFormat.format(endDate)+")</newstitle><br><newscontent>"+relatedTermsStr+t.relatedTermAsList()+"</newscontent></li>\n";
-        }
-        html += "</ol>\n" +
-            "	</div>\n" +
-            "</div>\n" +
-            "</body>\n" +
-            "</html>";
-        return html;
-    }
-    
 }

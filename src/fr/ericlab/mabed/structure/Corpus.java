@@ -85,7 +85,7 @@ public class Corpus {
         int a = Collections.min(list), b = Collections.max(list);
         LineIterator it = null;
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
             if(it.hasNext()) {
                 Date parsedDate = dateFormat.parse(it.nextLine());
@@ -145,7 +145,7 @@ public class Corpus {
         try {
             it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
             if(it.hasNext()) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 Date parsedDate = dateFormat.parse(it.nextLine());
                 startTimestamp = new java.sql.Timestamp(parsedDate.getTime());
             }
@@ -154,7 +154,7 @@ public class Corpus {
             while(it.hasNext()) {
                 timestamp = it.nextLine();
             }
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date parsedDate = dateFormat.parse(timestamp);
             endTimestamp = new java.sql.Timestamp(parsedDate.getTime());
         } catch (IOException | ParseException ex) {

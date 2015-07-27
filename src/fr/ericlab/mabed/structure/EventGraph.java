@@ -56,7 +56,7 @@ public class EventGraph {
             for(WeightedTerm wt : event.relatedTerms.list){
                 Node wtNode = graph.getNode(wt.term);
                 if(wtNode != null){
-                    if(wtNode.getAttribute("ui.class").equals("mainTerm") && wtNode.hasEdgeFrom(graph.getNode(event.mainTerm))){
+                    if(wtNode.getAttribute("ui.class").equals("mainTerm") && wtNode.hasEdgeFrom((Node)graph.getNode(event.mainTerm))){
                         Event event1 = getEvent(wtNode);
                         double intersection = Math.max(event.I.intersectionProportion(event1.I), event1.I.intersectionProportion(event.I));
                         if(intersection > sigma){
@@ -138,7 +138,7 @@ public class EventGraph {
                             // remove obsolete edge
                             graph.removeEdge(edge);
                             if(edge.getSourceNode().getDegree() == 0){
-                                graph.removeNode(edge.getSourceNode());
+                                graph.removeNode((Node)edge.getSourceNode());
                             }
                         }
                     }
@@ -172,7 +172,7 @@ public class EventGraph {
                         graph.getEdge(edgeId).addAttribute("weight", edge.getAttribute("weight"));
                     }
                     if(edge.getSourceNode().getDegree() == 0){
-                        graph.removeNode(edge.getSourceNode());
+                        graph.removeNode((Node)edge.getSourceNode());
                     }
                 }
             }
