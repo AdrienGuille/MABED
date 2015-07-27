@@ -5,7 +5,12 @@ Mention-anomaly-based Event Detection and Tracking in Twitter
 
 Author: Adrien GUILLE
 
-Details of this program are described in the following paper:
+Details of this program are described in the following papers:
+
+	Adrien Guille and Cécile Favre (2015) 
+	Event detection, tracking, and visualization in Twitter: a mention-anomaly-based approach.
+	Springer Social Network Analysis and Mining,
+	vol. 5, iss. 1, art. 18, DOI: 10.1007/s13278-015-0258-0
 
 	Adrien Guille and Cécile Favre (2014) 
 	Mention-Anomaly-Based Event Detection and Tracking in Twitter.
@@ -13,7 +18,7 @@ Details of this program are described in the following paper:
 	Advances in Social Network Mining and Analysis (ASONAM 2014),
 	pp. 375-382, DOI: 10.1109/ASONAM.2014.6921613
 
-Please cite this paper when using the program.
+Please cite one of these papers when using the program.
 
 Files in the Directory
 ----------------------
