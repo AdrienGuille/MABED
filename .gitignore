@@ -13,3 +13,4 @@ nbproject/project.xml
 /build/
 /dist/
 dist/lib/commons-io-2.4.jar
+/target/

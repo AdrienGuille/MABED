@@ -69,6 +69,8 @@ public class Main {
                     }
                     File textFile = new File("output/MABED.tex");
                     FileUtils.writeStringToFile(textFile,mabed.events.toLatex(corpus),false);
+                    File htmlFile = new File("output/MABED.html");
+                    FileUtils.writeStringToFile(htmlFile,mabed.events.toHtml(corpus),false);
                     textFile = new File("output/MABED.log");
                     FileUtils.writeStringToFile(textFile,output,false);
                     mabed.events.printLatex(corpus);

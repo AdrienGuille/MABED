@@ -67,6 +67,17 @@ public class EventList {
         System.out.println(toLatex(corpus));
     }
     
+    public String toHtml(Corpus corpus) {
+        String string = "<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"description\" content=\"\">\n    <meta name=\"author\" content=\"\">\n    <title>Mabed Output</title>\n    <link href=\"bootstrap.css\" rel=\"stylesheet\">\n    <link href=\"1-col-portfolio.css\" rel=\"stylesheet\">\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"row\">\n            <div class=\"col-lg-12\">\n                <h1 class=\"page-header\">Mabed output\n                    <small>Event detection results</small>\n                </h1>\n            </div>\n        </div>";
+        for(Event topic : list){
+        	string+=" <!-- /.row -->\n\n        <!-- Project One -->\n        <div class=\"row\">\n            <div class=\"col-md-7\">\n                <a href=\"#\">\n                    <img class=\"img-responsive\" src=\"1%20Col%20Portfolio%20-%20Start%20Bootstrap%20Template_files/700x300.png\" alt=\"\">\n                </a>\n            </div>\n            <div class=\"col-md-5\">";
+            string +="<h3>" + topic.mainTerm+"</h3>";
+            string+="<h4>"+new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
+            string+="<p>"+topic.relatedTerms.toString().replace("related terms:","")+"</p></div></div><hr>";
+        }
+        return string+"<hr>\n\n        <!-- Footer -->\n        <footer>\n            <div class=\"row\">\n                <div class=\"col-lg-12\">\n                    <p>Copyright © Mabed - Adrien Guille</p>\n                </div>\n            </div>\n            <!-- /.row -->\n        </footer>\n\n    </div>\n    <script src=\"jquery.js\"></script>\n    <script src=\"bootstrap.js\"></script>\n</body></html>";
+    }
+    
     public String toLatex(Corpus corpus){
         int rank = 1;
         String string = "";

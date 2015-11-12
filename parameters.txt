@@ -1,9 +1,9 @@
 # If you are running MABED for the first time, or if the content of the input directory has been modified, this parameter should be set to 'true', otherwise 'false'
 prepareCorpus = true
 # The length of each time-slice, expressed in minutes, e.g. 30
-timeSliceLength = 30
+timeSliceLength = 5
 # Number of threads to use
-numberOfThreads = 12
+numberOfThreads = 4
 # MABED parameters
 k = 40
 p = 10
