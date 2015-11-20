@@ -62,4 +62,16 @@ public class WeightedTermList {
         }
         return str.substring(0,str.length()-2);
     }
+    public String toStringNoWeights(int limit) {
+    	sort();
+    	String str="";
+    	int i=0;
+    	for(WeightedTerm t: list){
+    		if (i > limit)
+    			break;
+    		i++;
+            str += t.term+" ";
+        }
+    	return str;
+    }
 }

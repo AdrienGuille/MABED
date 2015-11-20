@@ -50,7 +50,7 @@ public class Main {
                     }else{
                         System.out.println("Running the centralized implementation");
                     }
-                    corpus.loadCorpus(configuration.numberOfThreads>1);
+                    corpus.loadCorpus(configuration.numberOfThreads > 1);
                     String output = "MABED: Mention-Anomaly-Based Event Detection\n"+corpus.output+"\n";
                     System.out.println("-------------------------\n"+Util.getDate()+" MABED is running\n-------------------------");
                     output += "-------------------------\n"+Util.getDate()+" MABED is running\n-------------------------\n";

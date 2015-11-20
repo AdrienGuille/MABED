@@ -13,7 +13,7 @@ public class HookThread extends Thread {
 			e.printStackTrace();
 		}
 		try {
-			MabedLogger.close();
+			MabedWriter.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

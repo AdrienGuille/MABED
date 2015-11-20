@@ -19,6 +19,8 @@ package fr.ericlab.mabed.structure;
 
 import fr.ericlab.mabed.app.Configuration;
 import fr.ericlab.util.Util;
+import fr.loria.date.MabedDateFormat;
+import fr.loria.preparecorpus.FileNameFormatter;
 import indexer.GlobalIndexer;
 import java.io.File;
 import java.io.FileInputStream;
@@ -70,7 +72,7 @@ public class Corpus {
         System.out.println(Util.getDate()+" Preparing corpus...");
         String[] fileArray = new File("input/").list();
         nbTimeSlices = 0;
-        NumberFormat formatter = new DecimalFormat("00000000");
+        NumberFormat formatter = FileNameFormatter.getFormatter();
         ArrayList<Integer> list = new ArrayList<>();
         for(String filename : fileArray){
             if(filename.endsWith(".text")){
@@ -85,7 +87,7 @@ public class Corpus {
         int a = Collections.min(list), b = Collections.max(list);
         LineIterator it = null;
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            SimpleDateFormat dateFormat = MabedDateFormat.getDateFormat();
             it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
             if(it.hasNext()) {
                 Date parsedDate = dateFormat.parse(it.nextLine());
@@ -126,7 +128,7 @@ public class Corpus {
         }
         String[] fileArray = new File("input/").list();
         nbTimeSlices = 0;
-        NumberFormat formatter = new DecimalFormat("00000000");
+        NumberFormat formatter = FileNameFormatter.getFormatter();
         ArrayList<Integer> list = new ArrayList<>();
         for(String filename : fileArray){
             if(filename.endsWith(".text")){
@@ -145,7 +147,7 @@ public class Corpus {
         try {
             it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
             if(it.hasNext()) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                SimpleDateFormat dateFormat = MabedDateFormat.getDateFormat();
                 Date parsedDate = dateFormat.parse(it.nextLine());
                 startTimestamp = new java.sql.Timestamp(parsedDate.getTime());
             }
@@ -154,7 +156,7 @@ public class Corpus {
             while(it.hasNext()) {
                 timestamp = it.nextLine();
             }
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat dateFormat = MabedDateFormat.getDateFormat();
             Date parsedDate = dateFormat.parse(timestamp);
             endTimestamp = new java.sql.Timestamp(parsedDate.getTime());
         } catch (IOException | ParseException ex) {
@@ -216,7 +218,7 @@ public class Corpus {
     
     public String getMessages(Event event){
         String messages = "";
-        NumberFormat formatter = new DecimalFormat("00000000");
+        NumberFormat formatter = FileNameFormatter.getFormatter();
         String mainTerm = event.mainTerm;
         int count = 0;
         for(int i = event.I.timeSliceA; i <= event.I.timeSliceB; i++){

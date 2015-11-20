@@ -19,6 +19,7 @@ package fr.ericlab.mabed.structure;
 
 import fr.ericlab.mabed.algo.MABED;
 import fr.loria.bingsearch.BingSearch;
+import fr.loria.date.MabedDateFormat;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class EventList {
             File textFile = new File("output/"+filename+".txt");
             FileUtils.writeStringToFile(textFile,"",false);
             for(Event event : list){
-                FileUtils.writeStringToFile(textFile,"   - ["+new SimpleDateFormat("yyyy-MM-dd hh:mm").format(dataset.toDate(event.I.timeSliceA))+"//"+new SimpleDateFormat("yyyy-MM-dd hh:mm").format(dataset.toDate(event.I.timeSliceB))+
+                FileUtils.writeStringToFile(textFile,"   - ["+MabedDateFormat.getDateFormatResult().format(dataset.toDate(event.I.timeSliceA))+"//"+new SimpleDateFormat("yyyy-MM-dd hh:mm").format(dataset.toDate(event.I.timeSliceB))+
                         "] "+event.toString(false)+"\n---------------------------------\n",true);
             }
         } catch (IOException ex) {
@@ -73,18 +74,26 @@ public class EventList {
     public String toHtml(Corpus corpus) {
         String string = "<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"description\" content=\"\">\n    <meta name=\"author\" content=\"\">\n    <title>Mabed Output</title>\n    <link href=\"bootstrap.css\" rel=\"stylesheet\">\n    <link href=\"1-col-portfolio.css\" rel=\"stylesheet\">\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"row\">\n            <div class=\"col-lg-12\">\n                <h1 class=\"page-header\">Mabed output\n                    <small>Event detection results</small>\n                </h1>\n            </div>\n        </div>";
         LinkedList<String> images;
+        LinkedList<String> web;
         Iterator<String> it;
+        Iterator<String> itWeb;
         for(Event topic : list){
         	try {
-				images=BingSearch.getPictures(topic.mainTerm.replace(",", " + "));
+				images=BingSearch.getPictures(topic.mainTerm.replace(",", " + ")+" " + topic.relatedTerms.toStringNoWeights(1));
+				web=BingSearch.getWebs(topic.mainTerm.replace(",", " + ")+ topic.relatedTerms.toStringNoWeights(1));
 				it=images.iterator();
+				itWeb=web.iterator();
 				string+=" <!-- /.row -->\n\n        <!-- Project One -->\n        <div class=\"row\">\n            <div class=\"col-md-7\">\n";
-				for (int i = 0; i < 3 && it.hasNext(); i++)
+				for (int i = 0; i < 1 && it.hasNext(); i++)
 					string+="<center><img class=\"img-responsive\" width='500px' src=\"" + it.next()+ "\" alt=\"\"><br /></center>\n";
 				string+="</div>\n            <div class=\"col-md-5\">";
 	            string +="<h3>" + topic.mainTerm+"</h3>";
-	            string+="<h4>"+new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
-	            string+="<p>"+topic.relatedTerms.toString().replace("related terms:","")+"</p></div></div><hr><hr><hr>";
+	            string+="<h4>"+MabedDateFormat.getDateFormatResult().format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
+	            string+="<p>"+topic.relatedTerms.toString().replace("related terms:","")+"</p>";
+	            for (int i = 0; i < 3 && itWeb.hasNext(); i++)
+					string+="<p>"+ itWeb.next()+ "</p>";
+				
+	            string+="</div></div><hr><hr><hr>";
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -97,7 +106,7 @@ public class EventList {
         int rank = 1;
         String string = "";
         for(Event topic : list){
-            string += rank+" & "+new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceA))+" -- "+new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+" & "+topic.mainTerm+": "+topic.relatedTerms.toString().replace("related terms:","")+"\\\\ \\hline\n";
+            string += rank+" & "+MabedDateFormat.getDateFormatResult().format(corpus.toDate(topic.I.timeSliceA))+" -- "+new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+" & "+topic.mainTerm+": "+topic.relatedTerms.toString().replace("related terms:","")+"\\\\ \\hline\n";
             rank++;
         }
         return string;
@@ -140,7 +149,7 @@ public class EventList {
             File wordsFile = new File("output/csv/"+formatter.format(i)+"-"+mainTerm+".words");
             File seriesFile = new File("output/csv/"+formatter.format(i)+"-"+mainTerm+".anomaly");            
             try {
-                FileUtils.writeStringToFile(descFile,event.score+"\t"+event.I.timeSliceA+"\t"+event.I.timeSliceB+"\t"+new SimpleDateFormat("YYYY-MM-dd HH:mm").format(corpus.toDate(event.I.timeSliceA))+"\t"+new SimpleDateFormat("YYYY-MM-dd HH:mm").format(corpus.toDate(event.I.timeSliceB))+"\n",true);
+                FileUtils.writeStringToFile(descFile,event.score+"\t"+event.I.timeSliceA+"\t"+event.I.timeSliceB+"\t"+MabedDateFormat.getDateFormatResult().format(corpus.toDate(event.I.timeSliceA))+"\t"+new SimpleDateFormat("YYYY-MM-dd HH:mm").format(corpus.toDate(event.I.timeSliceB))+"\n",true);
             } catch (IOException ex) {
                 Logger.getLogger(EventList.class.getName()).log(Level.SEVERE, null, ex);
             }

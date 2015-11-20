@@ -16,11 +16,13 @@ import org.json.JSONObject;
 
 public class BingSearch {
 	
-	private static String urlStart="https://api.datamarket.azure.com/Bing/Search/Image?Query=%27";
+	private static String urlStartPictures="https://api.datamarket.azure.com/Bing/Search/Image?Query=%27";
+	private static String urlStartWebs="https://api.datamarket.azure.com/Bing/Search/Web?Query=%27";
 	private static String urlEnd="%27&$format=JSON";
 	private static String accountKey = "wAxAjiq/DYP5HeDuUgyIWz7m5ZEv/pRmpOVchDvxc7w";
 	
-	public static LinkedList<String> getPictures(String keywords) throws IOException {
+	
+	private static LinkedList<String> getObjects(String keywords, String urlStart) throws IOException {
 		LinkedList<String> list = new LinkedList<String>();
 		String bingUrl=urlStart+java.net.URLEncoder.encode(keywords)+urlEnd;
 
@@ -45,13 +47,23 @@ public class BingSearch {
 	    JSONObject objet;
 	    while (it.hasNext()) {
 	    	objet=(JSONObject) it.next();
-	    	list.add(objet.getString("MediaUrl"));
+	    	if (urlStart.equals(BingSearch.urlStartPictures))
+	    		list.add(objet.getString("MediaUrl"));
+	    	else
+	    		list.add(objet.getString("Description"));
 	    }
-	    return list;
-	    	
+	    return list; 	
 	}
 	
+	public static LinkedList<String> getPictures(String keywords) throws IOException {
+		return BingSearch.getObjects(keywords, BingSearch.urlStartPictures);
+	}
+	public static LinkedList<String> getWebs(String keywords) throws IOException {
+		return BingSearch.getObjects(keywords, BingSearch.urlStartWebs);
+	}
+	
+	
 	public static void main(String[] args) throws IOException {
-		BingSearch.getPictures("caca");
+		BingSearch.getWebs("caca");
 	}
 }
