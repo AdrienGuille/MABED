@@ -4,17 +4,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 import org.apache.log4j.Logger;
 
 import fr.loria.date.MabedDateFormat;
 import fr.loria.log.AppLogger;
+import fr.loria.preparecorpus.FileNameFormatter;
 
 /**
- * @author nicolas
+ * @author Nicolas Dugué
  *
  *	Used to write the tweet gathered by the streaming API
  */
@@ -23,19 +22,36 @@ public class MabedWriter {
 	private static FileWriter fwtime;
 	private static DateFormat dateFormat;
 	private static Calendar c;
-    Date date = new Date();
-    String dateString = dateFormat.format(date); 
-	
+	private static int fileId=0; 
+	private static String fileName;
+	private static Logger logger;
 	private static void createLogger(String filename) throws IOException {
-		fwtext = new FileWriter(new File(filename+".text"));
-		fwtime=new FileWriter(new File(filename+".time"));
+		logger = AppLogger.getInstance();
+		File theDir = new File(filename);
+		// if the directory does not exist, create it
+		if (!theDir.exists()) {
+		    logger.info("Creating directory: " + filename);
+		    boolean result = false;
+		    try{
+		        theDir.mkdir();
+		        result = true;
+		    } 
+		    catch(SecurityException se){
+		    	logger.fatal("Fatal error : directory cannot be created - you do not own it");
+		    	System.exit(0);
+		    }        
+		    if(result) {    
+		        logger.info("Directory " + filename+" created");  
+		    }
+		}
+
+		MabedWriter.fileName=filename;
 		dateFormat=MabedDateFormat.getDateFormat();
-		Logger logger = AppLogger.getInstance();
-		logger.info(filename+".text created > records the textual content of your tweets");
-		logger.info(filename+".time created > records the timestamp of your tweets");
+		
+		createMabedFiles();
 	}
 	
-	public static void logTweet(String msg, String filename) throws IOException{
+	public static synchronized void logTweet(String msg, String filename) throws IOException{
 		if (fwtext == null) {
 			createLogger(filename);
 		}
@@ -46,5 +62,18 @@ public class MabedWriter {
 	public static void close() throws IOException {
 		fwtext.close();
 		fwtime.close();
+	}
+	private static void createMabedFiles() throws IOException {
+		String txtName = fileName+"/"+FileNameFormatter.getFormatter().format(fileId)+".text";
+		String timeName=fileName+"/"+FileNameFormatter.getFormatter().format(fileId)+".time";
+		fwtext = new FileWriter(new File(txtName));
+		fwtime=new FileWriter(new File(timeName));
+		logger.info(txtName + " created > records the textual content of your tweets");
+		logger.info(timeName+ " created > records the timestamp of your tweets");
+	}
+	public static synchronized void closeAndReopen() throws IOException {
+		close();
+		fileId++;
+		createMabedFiles();
 	}
 }

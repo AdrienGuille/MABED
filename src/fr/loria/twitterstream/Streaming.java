@@ -22,7 +22,7 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.auth.AccessToken;
 
 /**
- * @author nicolas
+ * @author Nicolas Dugué
  *
  *	Main Class used to collect tweets
  */
@@ -48,7 +48,9 @@ public class Streaming {
 		options.addOption(option);
 		option = new Option("k", "keyword", true, "Keywords to use to filter the tweet stream");
 		options.addOption(option);
-		option = new Option("e", "exp", true, "Experiment Name");
+		option = new Option("e", "exp", true, "Experiment Name : ONE WORD ONLY");
+		options.addOption(option);
+		option = new Option("m", "minutes", true, "Time interval in minutes. Default : 30.");
 		options.addOption(option);
 	}
 	/**
@@ -98,7 +100,7 @@ public class Streaming {
 	public static void main(String[] args) throws TwitterException, IOException, ParseException{
 		//Create the Command Line Interface
 		createCLI();
-		//Parse the arguments filled bu the user
+		//Parse the arguments filled by the user
 		CommandLine line = parser.parse(options, args);
 		//Check if the arguments were correctly filled
 		boolean process = check(line);
@@ -112,6 +114,11 @@ public class Streaming {
 			for (String s : line.getArgs())
 				keywords += " " + s;
 			final String exp = line.getOptionValue("e");
+			final int minutes;
+			if (line.hasOption("m"))
+				minutes=Integer.parseInt(line.getOptionValue("m"));
+			else
+				minutes=30;
 			
 			//Used to log the stream
 		    StatusListener listener = new StatusListener(){
@@ -143,8 +150,10 @@ public class Streaming {
 		    twitterStream.setOAuthAccessToken(act);
 		    twitterStream.addListener(listener);
 		    log.info("Stream opened on : " + keywords);
+		    ChangeFileThread cf = new ChangeFileThread(minutes);
+		    Thread t = new Thread(cf);
+		    t.start();
 		    twitterStream.filter(keywords);
-		    
 		}
 	}
 }

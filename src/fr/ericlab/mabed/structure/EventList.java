@@ -18,14 +18,20 @@
 package fr.ericlab.mabed.structure;
 
 import fr.ericlab.mabed.algo.MABED;
-import fr.loria.bingsearch.BingSearch;
+import fr.ericlab.mabed.app.Configuration;
+import fr.ericlab.mabed.app.TwitterAccount;
 import fr.loria.date.MabedDateFormat;
+import fr.loria.html.WriteHtml;
+import fr.loria.search.EmptySearch;
+import fr.loria.search.ISearch;
+import fr.loria.search.twittersearch.TwitterSearch;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -37,12 +43,20 @@ import org.apache.commons.io.FileUtils;
  *
  *   @author Adrien GUILLE, ERIC Lab, University of Lyon 2
  *   @email adrien.guille@univ-lyon2.fr
+ *   Modifications : Nicolas Dugué
  */
 public class EventList {
     public LinkedList<Event> list;
+    private ISearch search;
     
     public EventList(){
         list = new LinkedList<>();
+        if (Configuration.isTwitterFilled()) {
+        	search = new TwitterSearch(TwitterAccount.getSingleton());
+        }
+        else {
+        	search = new EmptySearch();
+        }
     }
     
     public void writeEventsToFile(Corpus dataset, String filename){
@@ -71,35 +85,43 @@ public class EventList {
         System.out.println(toLatex(corpus));
     }
     
+    /**
+     * Modifications : Nicolas Dugué
+     * Allows to create a report in a HTML format
+     * @param corpus
+     * @return
+     */
     public String toHtml(Corpus corpus) {
+    	WriteHtml.writeHtml();    	
         String string = "<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"description\" content=\"\">\n    <meta name=\"author\" content=\"\">\n    <title>Mabed Output</title>\n    <link href=\"bootstrap.css\" rel=\"stylesheet\">\n    <link href=\"1-col-portfolio.css\" rel=\"stylesheet\">\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"row\">\n            <div class=\"col-lg-12\">\n                <h1 class=\"page-header\">Mabed output\n                    <small>Event detection results</small>\n                </h1>\n            </div>\n        </div>";
-        LinkedList<String> images;
-        LinkedList<String> web;
+        Collection<String> images;
+        Collection<String> web;
         Iterator<String> it;
         Iterator<String> itWeb;
+        String request;
         for(Event topic : list){
-        	try {
-				images=BingSearch.getPictures(topic.mainTerm.replace(",", " + ")+" " + topic.relatedTerms.toStringNoWeights(1));
-				web=BingSearch.getWebs(topic.mainTerm.replace(",", " + ")+ topic.relatedTerms.toStringNoWeights(1));
-				it=images.iterator();
-				itWeb=web.iterator();
-				string+=" <!-- /.row -->\n\n        <!-- Project One -->\n        <div class=\"row\">\n            <div class=\"col-md-7\">\n";
-				for (int i = 0; i < 1 && it.hasNext(); i++)
-					string+="<center><img class=\"img-responsive\" width='500px' src=\"" + it.next()+ "\" alt=\"\"><br /></center>\n";
-				string+="</div>\n            <div class=\"col-md-5\">";
-	            string +="<h3>" + topic.mainTerm+"</h3>";
-	            string+="<h4>"+MabedDateFormat.getDateFormatResult().format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
-	            string+="<p>"+topic.relatedTerms.toString().replace("related terms:","")+"</p>";
-	            for (int i = 0; i < 3 && itWeb.hasNext(); i++)
-					string+="<p>"+ itWeb.next()+ "</p>";
-				
-	            string+="</div></div><hr><hr><hr>";
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+        	request=topic.mainTerm.replace(",", " ")+" " + topic.relatedTerms.toStringNoWeights(2);
+			images=search.getPictures(request);
+			web=search.getWebs(request);
+			it=images.iterator();
+			itWeb=web.iterator();
+			string+=" <!-- /.row -->\n\n        <!-- Project One -->\n        <div class=\"row\">\n            <div class=\"col-md-7\">\n";
+			for (int i = 0; i < 3 && it.hasNext(); i++)
+				string+="<center><img class=\"img-responsive\" width='250px' src=\"" + it.next()+ "\" alt=\"\"><br /></center>\n";
+			string+="</div>\n            <div class=\"col-md-5\">";
+            string +="<h3><b>Main Keywords :</b> " + topic.mainTerm+"</h3>";
+            string+="<h4>"+MabedDateFormat.getDateFormatResult().format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
+            string+="<p><b>Additional weighted keywords</b> : "+topic.relatedTerms.toString().replace("related terms:","")+"</p>";
+            string +="<h3>Some Twitter results</h3>";
+            for (int i = 0; i < 5 && itWeb.hasNext(); i++)
+				string+="<p>"+ itWeb.next()+ "</p>";
+            string +="<h3>More results</h3>";
+            string +="<p>Google : <a href='https://www.google.fr/?#q="+topic.mainTerm.replace(",", "+")+"' target='_blank'>Results</a></p>";
+            string +="<p>Twitter : <a href='https://twitter.com/search?q="+topic.mainTerm.replace(",", " ")+"' target='_blank'>Results</a></p>";
+            string+="</div></div><hr><hr><hr>";
         	
         }
-        return string+"<hr>\n\n        <!-- Footer -->\n        <footer>\n            <div class=\"row\">\n                <div class=\"col-lg-12\">\n                    <p>Copyright © Mabed - Adrien Guille</p>\n                </div>\n            </div>\n            <!-- /.row -->\n        </footer>\n\n    </div>\n    <script src=\"jquery.js\"></script>\n    <script src=\"bootstrap.js\"></script>\n</body></html>";
+        return string+"<hr>\n\n        <!-- Footer -->\n        <footer>\n            <div class=\"row\">\n                <div class=\"col-lg-12\">\n                    <p><a href='http://mediamining.univ-lyon2.fr/people/guille/'>MABED - Media Mining - Adrien Guille</a></p>\n                </div>\n            </div>\n            <!-- /.row -->\n        </footer>\n\n    </div>\n    <script src=\"http://code.jquery.com/jquery-latest.min.js\" type=\"text/javascript\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js\" integrity=\"sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==\" crossorigin=\"anonymous\"></script>\n</body></html>";
     }
     
     public String toLatex(Corpus corpus){

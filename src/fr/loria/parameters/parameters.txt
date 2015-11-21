@@ -1,22 +1,21 @@
+#Experimentation Name
+exp=tbjp
 # If you are running MABED for the first time, or if the content of the input directory has been modified, this parameter should be set to 'true', otherwise 'false'
 prepareCorpus = true
 # The length of each time-slice, expressed in minutes, e.g. 30
-timeSliceLength = 5
+timeSliceLength = 1
 # Number of threads to use
 numberOfThreads = 4
-#Number of events
-k = 40
-#Number of related keywords to find for each event
+# MABED parameters
+k = 2
 p = 10
-#Parameter that controls the relevance of related keywords for each event
 theta = 0.7
-#Parameter that controls the event redundancy
 sigma = 0.5
 # List of stopwords that are removed from the vocabularies
 stopwords = stopwords.txt
 # Adjust support to speed up the first phase
 minSupport = 0.001
-maxSupport = 0.01
+maxSupport = 0.9
 #For the HTML Report, if you want to use Twitter information
 twitter=true
 #if twitter is set to false, the following parameters can remain empty
@@ -24,4 +23,3 @@ consumerKey=KRqSTCdB7kmuB4KNlnhc1MAEA
 secretConsumerKey=sw8XMo8HA4QLlv5oPbBWMMIrXF4ezSLI6XHjYWbSCydyEDGjG4
 token=385008562-VqxMozAfS7YLqcFjp18BPVLt5wOOguKDwdUIKbAp
 secretToken=OFGahvPFFVQG4fgjYpk4kk26oqX2kcjnyQjTxeEw3gdGk
-	

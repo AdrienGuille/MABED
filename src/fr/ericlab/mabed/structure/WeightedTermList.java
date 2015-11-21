@@ -25,6 +25,7 @@ import java.util.LinkedList;
  *
  *   @author Adrien GUILLE, ERIC Lab, University of Lyon 2
  *   @email adrien.guille@univ-lyon2.fr
+ *   Modifications : Nicolas Dugué
  */
 public class WeightedTermList {
     public LinkedList<WeightedTerm> list;

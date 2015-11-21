@@ -45,6 +45,7 @@ import org.apache.commons.io.LineIterator;
  *
  *   @author Adrien GUILLE, ERIC Lab, University of Lyon 2
  *   @email adrien.guille@univ-lyon2.fr
+ *   Modifications : Nicolas Dugué
  */
 public class Corpus {
     public Configuration configuration;
@@ -70,7 +71,7 @@ public class Corpus {
        
     public void prepareCorpus(){
         System.out.println(Util.getDate()+" Preparing corpus...");
-        String[] fileArray = new File("input/").list();
+        String[] fileArray = new File(Configuration.getPath()+"/").list();
         nbTimeSlices = 0;
         NumberFormat formatter = FileNameFormatter.getFormatter();
         ArrayList<Integer> list = new ArrayList<>();
@@ -88,12 +89,12 @@ public class Corpus {
         LineIterator it = null;
         try {
             SimpleDateFormat dateFormat = MabedDateFormat.getDateFormat();
-            it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
+            it = FileUtils.lineIterator(new File(Configuration.getPath()+"/"+formatter.format(a)+".time"), "UTF-8");
             if(it.hasNext()) {
                 Date parsedDate = dateFormat.parse(it.nextLine());
                 startTimestamp = new java.sql.Timestamp(parsedDate.getTime());
             }
-            it = FileUtils.lineIterator(new File("input/"+formatter.format(b)+".time"), "UTF-8");
+            it = FileUtils.lineIterator(new File(Configuration.getPath()+"/"+formatter.format(b)+".time"), "UTF-8");
             String lastLine = "";
             while(it.hasNext()) {
                 lastLine = it.nextLine();
@@ -108,13 +109,13 @@ public class Corpus {
         System.out.print("   - Computing word frequencies");
         GlobalIndexer indexer = new GlobalIndexer(configuration.numberOfThreads,false);
         try {
-            indexer.index("input/", configuration.stopwords);
+            indexer.index(Configuration.getPath()+"/", configuration.stopwords);
         } catch (    InterruptedException | IOException ex) {
             Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
         }
         indexer = new GlobalIndexer(configuration.numberOfThreads,true);
         try {
-            indexer.index("input/", configuration.stopwords);
+            indexer.index(Configuration.getPath()+"/", configuration.stopwords);
         } catch (    InterruptedException | IOException ex) {
             Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -126,7 +127,7 @@ public class Corpus {
         if(configuration.prepareCorpus){
             prepareCorpus();
         }
-        String[] fileArray = new File("input/").list();
+        String[] fileArray = new File(Configuration.getPath()+"/").list();
         nbTimeSlices = 0;
         NumberFormat formatter = FileNameFormatter.getFormatter();
         ArrayList<Integer> list = new ArrayList<>();
@@ -145,13 +146,13 @@ public class Corpus {
         messageCount = 0;
         LineIterator it = null;
         try {
-            it = FileUtils.lineIterator(new File("input/"+formatter.format(a)+".time"), "UTF-8");
+            it = FileUtils.lineIterator(new File(Configuration.getPath()+"/"+formatter.format(a)+".time"), "UTF-8");
             if(it.hasNext()) {
                 SimpleDateFormat dateFormat = MabedDateFormat.getDateFormat();
                 Date parsedDate = dateFormat.parse(it.nextLine());
                 startTimestamp = new java.sql.Timestamp(parsedDate.getTime());
             }
-            it = FileUtils.lineIterator(new File("input/"+formatter.format(b)+".time"), "UTF-8");
+            it = FileUtils.lineIterator(new File(Configuration.getPath()+"/"+formatter.format(b)+".time"), "UTF-8");
             String timestamp = "";
             while(it.hasNext()) {
                 timestamp = it.nextLine();
@@ -166,24 +167,24 @@ public class Corpus {
         }
         try {
             // Global index
-            FileInputStream fisMatrix = new FileInputStream("input/indexes/frequencyMatrix.dat");
+            FileInputStream fisMatrix = new FileInputStream(Configuration.getPath()+"/indexes/frequencyMatrix.dat");
             ObjectInputStream oisMatrix = new ObjectInputStream(fisMatrix);
             frequencyMatrix = (short[][]) oisMatrix.readObject();
-            FileInputStream fisVocabulary = new FileInputStream("input/indexes/vocabulary.dat");
+            FileInputStream fisVocabulary = new FileInputStream(Configuration.getPath()+"/indexes/vocabulary.dat");
             ObjectInputStream oisVocabulary = new ObjectInputStream(fisVocabulary);
             vocabulary = (ArrayList<String>) oisVocabulary.readObject();
             // Mention index
-            FileInputStream fisMentionMatrix = new FileInputStream("input/indexes/mentionFrequencyMatrix.dat");
+            FileInputStream fisMentionMatrix = new FileInputStream(Configuration.getPath()+"/indexes/mentionFrequencyMatrix.dat");
             ObjectInputStream oisMentionMatrix = new ObjectInputStream(fisMentionMatrix);
             mentionFrequencyMatrix = (short[][]) oisMentionMatrix.readObject();
-            FileInputStream fisMentionVocabulary = new FileInputStream("input/indexes/mentionVocabulary.dat");
+            FileInputStream fisMentionVocabulary = new FileInputStream(Configuration.getPath()+"/indexes/mentionVocabulary.dat");
             ObjectInputStream oisMentionVocabulary = new ObjectInputStream(fisMentionVocabulary);
             mentionVocabulary = (ArrayList<String>) oisMentionVocabulary.readObject();
             // Message count
-            String messageCountStr = FileUtils.readFileToString(new File("input/indexes/messageCount.txt"));
+            String messageCountStr = FileUtils.readFileToString(new File(Configuration.getPath()+"/indexes/messageCount.txt"));
             messageCount = Integer.parseInt(messageCountStr);
             // Message count distribution
-            FileInputStream fisDistribution = new FileInputStream("input/indexes/messageCountDistribution.dat");
+            FileInputStream fisDistribution = new FileInputStream(Configuration.getPath()+"/indexes/messageCountDistribution.dat");
             ObjectInputStream oisDistribution = new ObjectInputStream(fisDistribution);
             distribution = (int[]) oisDistribution.readObject();
         } catch (FileNotFoundException ex) {
@@ -223,7 +224,7 @@ public class Corpus {
         int count = 0;
         for(int i = event.I.timeSliceA; i <= event.I.timeSliceB; i++){
             try {
-                String filename = "input/"+formatter.format(i)+".text";
+                String filename = Configuration.getPath()+"/"+formatter.format(i)+".text";
                 List<String> lines = FileUtils.readLines(new File(filename));
                 for(String line : lines){
                     if(line.contains(" "+mainTerm+" ")){

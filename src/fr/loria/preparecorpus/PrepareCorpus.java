@@ -1,11 +1,9 @@
 package fr.loria.preparecorpus;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -13,6 +11,12 @@ import java.util.Scanner;
 
 import fr.loria.date.MabedDateFormat;
 
+/**
+ * @author Nicolas Dugué
+ * 
+ * Can be used to slice a corpus a posteriori, if the stream logged tweet in only one file
+ *
+ */
 public class PrepareCorpus {
 	private static String file;
 	private static int nbMinutes;
@@ -32,6 +36,13 @@ public class PrepareCorpus {
 		nbMinutes = nbM;
 	}
 	
+	
+	/**
+	 * Cut a corpus of tweets obtained via Streaming but gathered in only one file
+	 * 
+	 * @throws ParseException
+	 * @throws IOException
+	 */
 	public static void cutCorpusInSlices() throws ParseException, IOException{
 		Scanner scTxt= new Scanner(new File(file+".text"));
 		Scanner scTime = new Scanner(new File(file+".time"));
@@ -56,17 +67,13 @@ public class PrepareCorpus {
 				timeLine=scTime.nextLine();
 				others.setTime(dateFormat.parse(timeLine));
 				
-				//if (start.get(Calendar.HOUR_OF_DAY) >= 12) {
-				//	others.add(Calendar.HOUR, 12);
-				//}
 				ok=true;
 				start.set(Calendar.HOUR_OF_DAY, start.get(Calendar.HOUR));
 				others.set(Calendar.HOUR_OF_DAY, others.get(Calendar.HOUR));
 				if (start.get(Calendar.HOUR_OF_DAY) == 0 && others.get(Calendar.HOUR_OF_DAY) == 11) {
 					ok=false;
 				}
-				//others.set(others.get(Calendar.HOUR_OF_DAY), others.get(Calendar.HOUR));
-				//System.out.println(others.getTime()+ " -- " + start.getTime()+ " -- "+ start.get(Calendar.HOUR_OF_DAY) + " -- "+ start.get(Calendar.HOUR));
+				
 				if (others.after(start) && ok) {
 					fwTxt.close();
 					fwTime.close();

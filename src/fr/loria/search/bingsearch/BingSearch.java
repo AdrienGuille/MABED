@@ -1,29 +1,38 @@
-package fr.loria.bingsearch;
+package fr.loria.search.bingsearch;
 
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.HashSet;
 
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class BingSearch {
+import fr.loria.search.ISearch;
+
+/**
+ * @author Nicolas Dugué
+ * 
+ * Bing results are bad results : pretty useless class...
+ *
+ */
+public class BingSearch implements ISearch{
 	
 	private static String urlStartPictures="https://api.datamarket.azure.com/Bing/Search/Image?Query=%27";
 	private static String urlStartWebs="https://api.datamarket.azure.com/Bing/Search/Web?Query=%27";
 	private static String urlEnd="%27&$format=JSON";
-	private static String accountKey = "wAxAjiq/DYP5HeDuUgyIWz7m5ZEv/pRmpOVchDvxc7w";
+	
+	//Need to be provided
+	private static String accountKey = "";
 	
 	
-	private static LinkedList<String> getObjects(String keywords, String urlStart) throws IOException {
-		LinkedList<String> list = new LinkedList<String>();
+	private static HashSet<String> getObjects(String keywords, String urlStart) throws IOException {
+		HashSet<String> list = new HashSet<String>();
 		String bingUrl=urlStart+java.net.URLEncoder.encode(keywords)+urlEnd;
 
 	    byte[] accountKeyBytes = Base64.encodeBase64((accountKey + ":" + accountKey).getBytes()); // code for encoding found on stackoverflow
@@ -55,15 +64,25 @@ public class BingSearch {
 	    return list; 	
 	}
 	
-	public static LinkedList<String> getPictures(String keywords) throws IOException {
-		return BingSearch.getObjects(keywords, BingSearch.urlStartPictures);
+	/* (non-Javadoc)
+	 * @see fr.loria.search.ISearch#getPictures(java.lang.String)
+	 */
+	public HashSet<String> getPictures(String keywords) {
+		try {
+			return BingSearch.getObjects(keywords, BingSearch.urlStartPictures);
+		} catch (IOException e) {
+		}
+		return new HashSet<String>();
 	}
-	public static LinkedList<String> getWebs(String keywords) throws IOException {
-		return BingSearch.getObjects(keywords, BingSearch.urlStartWebs);
+	/* (non-Javadoc)
+	 * @see fr.loria.search.ISearch#getWebs(java.lang.String)
+	 */
+	public HashSet<String> getWebs(String keywords){
+		try {
+			return BingSearch.getObjects(keywords, BingSearch.urlStartWebs);
+		} catch (IOException e) {
+		}
+		return new HashSet<String>();
 	}
 	
-	
-	public static void main(String[] args) throws IOException {
-		BingSearch.getWebs("caca");
-	}
 }

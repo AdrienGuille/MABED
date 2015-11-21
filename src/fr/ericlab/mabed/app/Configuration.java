@@ -22,10 +22,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
+import fr.loria.log.AppLogger;
+
 /**
  *
  *   @author Adrien GUILLE, ERIC Lab, University of Lyon 2
  *   @email adrien.guille@univ-lyon2.fr
+ *   Modifications : Nicolas Dugué
  */
 public class Configuration {
     
@@ -36,6 +41,8 @@ public class Configuration {
     public boolean prepareCorpus;
     public int timeSliceLength;
     public String stopwords;
+    private static String path;
+    private static String pathOutput;
     
     // MABED
     public int k;
@@ -45,16 +52,35 @@ public class Configuration {
     public double minSupport;
     public double maxSupport;
     
+    //HTMLReport
+    private static boolean twitterFilled=false;
+    private static String consumer;
+    private static String secretConsumer;
+    private static String token;
+    private static String secretToken;
+    
+    //
+    private Logger log = AppLogger.getInstance();
+    
     public Configuration() throws IOException{
         File inputFile = new File("parameters.txt");
         Properties prop = new Properties();
         if(!inputFile.exists()){
-            System.out.println("Configuration file not found! See README.txt");
+            log.fatal("Configuration file not found! See README.txt");
             System.exit(-1);
         }else{
             try (FileInputStream inputStream = new FileInputStream(inputFile)) {
                 prop.load(inputStream);
                 prepareCorpus = Boolean.parseBoolean(prop.getProperty("prepareCorpus"));
+                path=prop.getProperty("exp");
+                log.info("Input path : "+path);
+                pathOutput=path+"_output";
+                log.info("Ouput path " +pathOutput);
+                File outputDir = new File(pathOutput);
+                if(!outputDir.isDirectory()){
+                	log.info("Output directory created");
+                    outputDir.mkdir();
+                }
                 timeSliceLength = Integer.parseInt(prop.getProperty("timeSliceLength"));
                 k = Integer.parseInt(prop.getProperty("k"));
                 p = Integer.parseInt(prop.getProperty("p"));
@@ -64,7 +90,48 @@ public class Configuration {
                 maxSupport = Double.parseDouble(prop.getProperty("maxSupport"));
                 stopwords = prop.getProperty("stopwords");
                 numberOfThreads = Integer.parseInt(prop.getProperty("numberOfThreads"));
+                
+                twitterFilled= Boolean.parseBoolean(prop.getProperty("twitter"));
+                if (twitterFilled) {
+                	consumer=prop.getProperty("consumerKey");
+                	secretConsumer=prop.getProperty("secretConsumerKey");
+                	token=prop.getProperty("token");
+                	secretToken=prop.getProperty("secretToken");
+                }
+                else {
+                	log.info("No Twitter properties found : HTML report won't contain pictures and tweet samples.");
+                }
             }
         }
     }
+
+	public static boolean isTwitterFilled() {
+		return twitterFilled;
+	}
+
+	public static String getConsumer() {
+		return consumer;
+	}
+
+	public static String getSecretConsumer() {
+		return secretConsumer;
+	}
+
+	public static String getToken() {
+		return token;
+	}
+
+	public static String getSecretToken() {
+		return secretToken;
+	}
+
+	public static String getPath() {
+		return path;
+	}
+
+	public static String getPathOutput() {
+		return pathOutput;
+	}
+
+    
 }

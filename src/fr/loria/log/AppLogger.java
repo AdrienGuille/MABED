@@ -6,7 +6,9 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
 /**
- * @author nicolas
+ * @author Nicolas Dugué
+ * 
+ * Application Logger using Log4j API
  * 
  * TRACE: Entrée et sortie de méthodes <br />
 DEBUG : Affichage de valeur de données <br />

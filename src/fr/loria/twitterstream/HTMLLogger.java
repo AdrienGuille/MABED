@@ -11,7 +11,7 @@ import org.apache.log4j.WriterAppender;
 import fr.loria.log.AppLogger;
 
 /**
- * @author nicolas
+ * @author Nicolas Dugué
  *
  *	Was useful to visualize the tweet gathered
  *  However, it is hard to custom the html template of log4j... It thus makes it a bit useless.
