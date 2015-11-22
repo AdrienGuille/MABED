@@ -15,97 +15,94 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
+				<artifactId>maven-shade-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>copy-dependencies</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>lib</outputDirectory>
-							<overWriteReleases>false</overWriteReleases>
-							<overWriteSnapshots>false</overWriteSnapshots>
-							<overWriteIfNewer>true</overWriteIfNewer>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>eventDetection</id>
+						<id>shade-mabed</id>
 						<phase>package</phase>
 						<goals>
-							<goal>jar</goal>
+							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<skipTests>true</skipTests>
-							<classifier>eventDetection</classifier>
-							<descriptorRefs>
-								<descriptorRef>eventDetection</descriptorRef>
-							</descriptorRefs>
-							<archive>
-								<manifest>
-									<!-- Jar file entry point -->
-									<addClasspath>true</addClasspath>
-									<classpathPrefix>lib/</classpathPrefix>
+							<outputFile>target/${project.artifactId}-${project.version}-eventDetection.jar</outputFile>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>fr.ericlab.mabed.app.Main</mainClass>
-								</manifest>
-							</archive>
+								</transformer>
+							</transformers>
 						</configuration>
 					</execution>
+					
 					<execution>
-						<id>prepareCorpus</id>
+						<id>shade-streaming</id>
 						<phase>package</phase>
 						<goals>
-							<goal>jar</goal>
+							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<skipTests>true</skipTests>
-							<classifier>prepareCorpus</classifier>
-							<descriptorRefs>
-								<descriptorRef>prepareCorpus</descriptorRef>
-							</descriptorRefs>
-							<archive>
-								<manifest>
-									<!-- Jar file entry point -->
-									<addClasspath>true</addClasspath>
-									<classpathPrefix>lib/</classpathPrefix>
-									<mainClass>fr.loria.preparecorpus.PrepareCorpus</mainClass>
-								</manifest>
-							</archive>
-						</configuration>
-					</execution>
-					<execution>
-						<id>getTweets</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<skipTests>true</skipTests>
-							<classifier>getTweets</classifier>
-							<descriptorRefs>
-								<descriptorRef>getTweets</descriptorRef>
-							</descriptorRefs>
-							<archive>
-								<manifest>
-									<!-- Jar file entry point -->
-									<addClasspath>true</addClasspath>
-									<classpathPrefix>${project.build.directory}/lib</classpathPrefix>
+							<outputFile>target/${project.artifactId}-${project.version}-getTweets.jar</outputFile>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>fr.loria.twitterstream.Streaming</mainClass>
-								</manifest>
-							</archive>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>shade-corpus</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<outputFile>target/${project.artifactId}-${project.version}-prepareCorpus.jar</outputFile>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>fr.loria.preparecorpus.PrepareCorpus</mainClass>
+								</transformer>
+							</transformers>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
 		</plugins>
 	</build>
 
