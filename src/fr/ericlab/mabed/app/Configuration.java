@@ -59,11 +59,13 @@ public class Configuration {
     private static String token;
     private static String secretToken;
     
-    //
+    //period
+    private static int period = -1;
+    
     private Logger log = AppLogger.getInstance();
     
-    public Configuration() throws IOException{
-        File inputFile = new File("parameters.txt");
+    public Configuration(String file) throws IOException{
+        File inputFile = new File(file);
         Properties prop = new Properties();
         if(!inputFile.exists()){
             log.fatal("Configuration file not found! See README.txt");
@@ -101,6 +103,8 @@ public class Configuration {
                 else {
                 	log.info("No Twitter properties found : HTML report won't contain pictures and tweet samples.");
                 }
+                if (prop.containsKey("period"))
+                	period=Integer.parseInt(prop.getProperty("period"));
             }
         }
     }
@@ -132,6 +136,11 @@ public class Configuration {
 	public static String getPathOutput() {
 		return pathOutput;
 	}
+
+	public static int getPeriod() {
+		return period;
+	}
+	
 
     
 }

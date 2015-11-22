@@ -21,10 +21,10 @@ import fr.ericlab.mabed.algo.MABED;
 import fr.ericlab.mabed.app.Configuration;
 import fr.ericlab.mabed.app.TwitterAccount;
 import fr.loria.date.MabedDateFormat;
-import fr.loria.html.WriteHtml;
 import fr.loria.search.EmptySearch;
 import fr.loria.search.ISearch;
 import fr.loria.search.twittersearch.TwitterSearch;
+import fr.loria.writer.WriteFromJar;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,7 +92,7 @@ public class EventList {
      * @return
      */
     public String toHtml(Corpus corpus) {
-    	WriteHtml.writeHtml();    	
+    	WriteFromJar.writeHtml();    	
         String string = "<!DOCTYPE html>\n<html lang=\"en\"><head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <meta name=\"description\" content=\"\">\n    <meta name=\"author\" content=\"\">\n    <title>Mabed Output</title>\n    <link href=\"bootstrap.css\" rel=\"stylesheet\">\n    <link href=\"1-col-portfolio.css\" rel=\"stylesheet\">\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"row\">\n            <div class=\"col-lg-12\">\n                <h1 class=\"page-header\">Mabed output\n                    <small>Event detection results</small>\n                </h1>\n            </div>\n        </div>";
         Collection<String> images;
         Collection<String> web;

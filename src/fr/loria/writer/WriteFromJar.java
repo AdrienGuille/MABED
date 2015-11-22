@@ -1,4 +1,4 @@
-package fr.loria.html;
+package fr.loria.writer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,20 +16,20 @@ import fr.loria.log.AppLogger;
  * @author Nicolas Dugué
  *	Allows To write the HTML, JS and CSS files allowing the correct visualization of the HTML Report
  */
-public class WriteHtml {
-	private static WriteHtml m = new WriteHtml();
+public class WriteFromJar {
+	private static WriteFromJar m = new WriteFromJar();
 	private static Logger log = AppLogger.getInstance();
 	public static void writeHtml() {
 		log.info("Writing stylesheets for the html report");
-		createFile("1-col-portfolio.css");
-		createFile("bootstrap.css");
+		createFile("1-col-portfolio.css",Configuration.getPathOutput());
+		createFile("bootstrap.css",Configuration.getPathOutput());
 		log.info("Writing of the stylesheets ended");
 	}
-	private static String createFile(String s) {
+	public static String createFile(String s, String output) {
 		File file=null;
 		 try {
 	            InputStream input = m.getClass().getClassLoader().getResourceAsStream(s);
-	            file= new File(Configuration.getPathOutput()+"/"+s);
+	            file= new File(output+"/"+s);
 	            OutputStream out = new FileOutputStream(file);
 	            int read;
 	            byte[] bytes = new byte[1024];

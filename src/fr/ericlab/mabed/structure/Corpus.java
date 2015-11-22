@@ -20,6 +20,7 @@ package fr.ericlab.mabed.structure;
 import fr.ericlab.mabed.app.Configuration;
 import fr.ericlab.util.Util;
 import fr.loria.date.MabedDateFormat;
+import fr.loria.log.AppLogger;
 import fr.loria.preparecorpus.FileNameFormatter;
 import indexer.GlobalIndexer;
 import java.io.File;
@@ -36,10 +37,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -65,6 +65,8 @@ public class Corpus {
     short[][] mentionFrequencyMatrix;
     public ArrayList<String> mentionVocabulary;
     
+    Logger log = AppLogger.getInstance();
+    
     public Corpus(Configuration conf){
         configuration = conf;
     }
@@ -79,13 +81,23 @@ public class Corpus {
             if(filename.endsWith(".text")){
                 try {
                     list.add(formatter.parse(filename.substring(0, 8)).intValue());
+                    nbTimeSlices++;
                 } catch (ParseException ex) {
-                    Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                nbTimeSlices++;
+                    log.error(ex);
+                } 
             }
         }
         int a = Collections.min(list), b = Collections.max(list);
+        
+        //If Mabed is continuously used, getPeriod returns the number of files to take into account in the processing.
+        if (Configuration.getPeriod() != -1) {
+        	if ((nbTimeSlices % Configuration.getPeriod()) != 0)
+        		b=b-1;
+        	a = b - (Configuration.getPeriod() -1);
+        	log.info("Using files from " + a + " to " + b);
+        	nbTimeSlices =Configuration.getPeriod(); 
+        	log.info(nbTimeSlices+ " time slices used");
+        }
         LineIterator it = null;
         try {
             SimpleDateFormat dateFormat = MabedDateFormat.getDateFormat();
@@ -102,24 +114,27 @@ public class Corpus {
             Date parsedDate = dateFormat.parse(lastLine);
             endTimestamp = new java.sql.Timestamp(parsedDate.getTime());
         } catch (IOException | ParseException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+           log.warn(ex);
         } finally {
             LineIterator.closeQuietly(it);
         }
-        System.out.print("   - Computing word frequencies");
+        log.info("   - Computing word frequencies");
+        
+        //TODO : C'est normal les deux blocs de code très similaires ci-dessous ?
         GlobalIndexer indexer = new GlobalIndexer(configuration.numberOfThreads,false);
         try {
             indexer.index(Configuration.getPath()+"/", configuration.stopwords);
         } catch (    InterruptedException | IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+            log.fatal(ex);
         }
         indexer = new GlobalIndexer(configuration.numberOfThreads,true);
         try {
             indexer.index(Configuration.getPath()+"/", configuration.stopwords);
         } catch (    InterruptedException | IOException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+        	log.fatal(ex);
         }
-        System.out.println(", 100% done.");
+        
+        log.info(", 100% done.");
     }
     
     public void loadCorpus(boolean parallelized){
@@ -135,13 +150,22 @@ public class Corpus {
             if(filename.endsWith(".text")){
                 try {
                     list.add(formatter.parse(filename.substring(0, 8)).intValue());
+                    nbTimeSlices++;
                 } catch (ParseException ex) {
-                    Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+                    log.error(ex);
                 }
-                nbTimeSlices++;
             }
         }
         int a = Collections.min(list), b = Collections.max(list);
+      //If Mabed is continuously used, getPeriod returns the number of files to take into account in the processing.
+        if (Configuration.getPeriod() != -1) {
+        	if ((nbTimeSlices % Configuration.getPeriod()) != 0)
+        		b=b-1;
+        	a = b - (Configuration.getPeriod() -1);
+        	log.info("Using files from " + a + " to " + b);
+        	nbTimeSlices =Configuration.getPeriod(); 
+        	log.info(nbTimeSlices+ " time slices used");
+        }
         distribution = new int[nbTimeSlices];
         messageCount = 0;
         LineIterator it = null;
@@ -161,7 +185,7 @@ public class Corpus {
             Date parsedDate = dateFormat.parse(timestamp);
             endTimestamp = new java.sql.Timestamp(parsedDate.getTime());
         } catch (IOException | ParseException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+            log.warn(ex);
         } finally {
             LineIterator.closeQuietly(it);
         }
@@ -188,12 +212,12 @@ public class Corpus {
             ObjectInputStream oisDistribution = new ObjectInputStream(fisDistribution);
             distribution = (int[]) oisDistribution.readObject();
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+            log.fatal(ex);
         } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+        	log.fatal( ex);
         }
         DecimalFormat df = new DecimalFormat("#,###");
-        System.out.println(Util.getDate()+" Loaded corpus:");
+        log.info(Util.getDate()+" Loaded corpus:");
         output += Util.getDate()+" Loaded corpus:\n";
         info ="   - time-slices: "+df.format(nbTimeSlices)+" time-slices of "+configuration.timeSliceLength+" minutes each\n";
         info +="   - first message: "+startTimestamp+"\n";
@@ -201,7 +225,7 @@ public class Corpus {
         info +="   - last message: "+endTimestamp+" ("+datasetLength+" days)\n";
         info +="   - number of messages: "+df.format(messageCount);
         output += info;
-        System.out.println(info);
+        log.info(info);
     }
     
     public short[] getMentionFrequency(int i){
@@ -233,7 +257,7 @@ public class Corpus {
                     }
                 }
             } catch (IOException ex) {
-                Logger.getLogger(Corpus.class.getName()).log(Level.SEVERE, null, ex);
+                log.fatal(ex);
             }
         }
         return messages;

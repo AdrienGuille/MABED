@@ -133,7 +133,7 @@ public class Streaming {
 		        public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {}
 		        public void onTrackLimitationNotice(int numberOfLimitedStatuses) {}
 		        public void onException(Exception ex) {
-		            ex.printStackTrace();
+		            log.warn(ex.getMessage());
 		        }
 				public void onScrubGeo(long arg0, long arg1) {
 				}
