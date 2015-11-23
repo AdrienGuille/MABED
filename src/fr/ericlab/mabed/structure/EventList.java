@@ -110,9 +110,9 @@ public class EventList {
 				string+="<center><img class=\"img-responsive\" width='250px' src=\"" + it.next()+ "\" alt=\"\"><br /></center>\n";
 			string+="</div>\n            <div class=\"col-md-5\">";
             string +="<h3><b>Main Keywords :</b> " + topic.mainTerm+"</h3>";
-            string+="<h4>"+MabedDateFormat.getDateFormatResult().format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
+            string+="<h4>Event high point : "+MabedDateFormat.getDateFormatResult().format(corpus.toDate(topic.I.timeSliceA)) + " - "+ new SimpleDateFormat("dd/MM HH:mm").format(corpus.toDate(topic.I.timeSliceB))+"</h4>";
             string+="<p><b>Additional weighted keywords</b> : "+topic.relatedTerms.toString().replace("related terms:","")+"</p>";
-            string +="<h3>Some Twitter results</h3>";
+            string +="<h3>Distinct results returned by Twitter using keywords :</h3>";
             for (int i = 0; i < 5 && itWeb.hasNext(); i++)
 				string+="<p>"+ itWeb.next()+ "</p>";
             string +="<h3>More results</h3>";

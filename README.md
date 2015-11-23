@@ -1,9 +1,10 @@
-MABED
+#MABED
 =====
 
 Mention-anomaly-based Event Detection and Tracking in Twitter
 
 Author: Adrien GUILLE
+Continuous Version with HTML Report : Nicolas Dugué
 
 Details of this program are described in the following papers:
 
@@ -20,7 +21,52 @@ Details of this program are described in the following papers:
 
 Please cite one of these papers when using the program.
 
-Files in the Directory
+#Getting the exec files
+=====
+
+With Maven, please run 
+	mvn install
+at the root of the project.
+It will produce four jars.
+
+The *getTweet* jar is used to consume the Twitter Streaming API and thus to collect tweets.
+
+The *prepareCorpus* jar can be used to prepare a corpus which was collected in one file. It cuts files in slices corresponding to time interval. It is necessary to partition the corpus in slices to run MABED. However, *getTweet* jar automatically partitions the corpus.
+
+The *eventDetection* jar runs the MABED method on a corpus of tweets and produces the html report to visualize the events detected.
+
+Finally, the *orchestrator* jar can be used to handle all the previous jars efficiently by running one command. It allows to run mabed continuously while collecting tweets and to keep html results.
+
+*ALL JARS have to be in the same directory.*
+
+#Running the program
+=====
+
+	java -jar mabed-0.1-orchestrator.jar 
+	usage: Streaming API
+	 -c,--consumer <arg>        Consumer key
+	 -cs,--consumerkey <arg>    Secret Consumer key
+	 -e,--exp <arg>             Experiment Name : ONE WORD ONLY
+	 -h,--help                  print this message
+	 -k,--events <arg>          Number of events to detect. Default to 20.
+	 -keyword,--keyword <arg>   Keywords to use to filter the tweet stream
+	 -m,--minutes <arg>         Time interval in minutes. Default : 30.
+	 -ms,--minsupport <arg>     Parameter for keyword selection between 0 and
+		                    1. Default to 0.01
+	 -Ms,--maxsupport <arg>     Parameter for keyword selection between 0 and
+		                    1. Default to 0.1
+	 -nt,--thread <arg>         Number of Threads
+	 -p,--keywords <arg>        Number of keywords per event. Default to 10.
+	 -period,--period <arg>     How many time intervals make a period.
+	 -sigma,--sigma <arg>       Parameter to control event redundancy between
+		                    0 and 1. Default to 0.5
+	 -t,--token <arg>           Twitter token
+	 -theta,--theta <arg>       Parameter for keyword selection between 0 and
+		                    1. Default to 0.7
+	 -ts,--secrettoken <arg>    Secret Twitter token
+
+
+#Files in the Directory
 ----------------------
 
 - input/: input files that describe the corpus in which we want to detect events
@@ -29,35 +75,3 @@ Files in the Directory
 - parameters.txt: Java properties file in which parameters are set
 - stopwords.txt: a list of common stopwords to remove when generating the vocabulary
 - lib/: program dependencies
-
-Input Format
-------------
-
-The program expects two sets of files in the "input/" directory:
-
-1. <time_slice>.text: content of the messages, one line per message;
-2. <time_slice>.time: timestamp of the messages, each line maps to the message that has the same line number in <time_slice>.text. Timestamps should be formatted according to this format: YYYY-MM-DD HH:mm:ss (e.g. 2009-11-01 00:01:24)
-
-Time-slices are expected to be numbered starting from 0 and files are expected to be named with 8 digits (e.g. 00000000.text, 00000000.time, 00000001.text, 00000001.time) 
-
-Parameter Setting
------------------
-
-All the parameters are set in the parameters.txt file:
-
-1. prepareCorpus (boolean): if you are running MABED for the first time, or if the content of the input directory has been modified, this parameter should be set to 'true', otherwise 'false'.
-2. timeSliceLength (int): length of each time-slice, expressed in minutes (e.g. 30);
-3. numberOfThreads (int): the number of threads used by MABED (if > 1, then the parallelized implementation of MABED is executed)
-4. k (int): desired number of events (e.g. 40);
-5. p (int): maximum number of related words describing each event (e.g. 10);
-6. theta (double): minimum weight of each related word (e.g. 0.7);
-7. sigma (double): merging threshold (e.g. 0.5);
-8. stopwords (String): name of the file that lists the stopwords, one word per line (e.g. stopwords.txt);
-9. minSupport (double): minimum support of words in the vocabulary (e.g. 0)
-10. maxSupport (double): maximum support of words in the vocabulary (e.g. 1)
-
-Running the program
--------------------
-
-- Requirements: JAVA (7+)
-- Execute the program MABED.jar with the following command: "java -jar MABED.jar -run". It should process the input and save the output in the "ouput/" directory.

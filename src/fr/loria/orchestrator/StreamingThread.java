@@ -33,7 +33,7 @@ public class StreamingThread implements Runnable{
 	public void run() {
 		Runtime rt = Runtime.getRuntime();
 		try {
-			ProcessBuilder pb = new ProcessBuilder("getTweets","-c "+c ,"-cs "+ cs,"-t "+ t,"-ts "+ ts,"-m " +nbMinutes, "-e " + exp,"-k " +keywords);
+			ProcessBuilder pb = new ProcessBuilder("java","-jar","mabed-0.1-getTweets.jar","-c",c ,"-cs", cs,"-t", t,"-ts",ts,"-m",nbMinutes,"-e", exp,"-k",keywords);
 			pb.redirectOutput(Redirect.INHERIT);
 			pb.redirectError(Redirect.INHERIT);
 			Process p = pb.start();
