@@ -21,8 +21,8 @@ Details of this program are described in the following papers:
 
 Please cite one of these papers when using the program.
 
-#Getting the exec files
-=====
+###Getting the exec files
+----------------------
 
 With Maven, please run 
 	mvn install
@@ -39,8 +39,14 @@ Finally, the *orchestrator* jar can be used to handle all the previous jars effi
 
 *ALL JARS have to be in the same directory.*
 
-#Running the program
-=====
+###Obtaining Twitter Tokens
+----------------------
+
+Twitter tokens are mandatory to use MABED and C-MABED. Thay allow the application to get data from Twitter.
+To get usable tokens, please follow this link : [https://dev.twitter.com/oauth/overview/application-owner-access-tokens] and especially the section introduced by "At the bottom of the next page, you will see a section labeled “your access token”:".
+
+###Running the program
+----------------------
 
 	java -jar mabed-0.1-orchestrator.jar 
 	usage: Streaming API
@@ -66,7 +72,7 @@ Finally, the *orchestrator* jar can be used to handle all the previous jars effi
 	 -ts,--secrettoken <arg>    Secret Twitter token
 
 
-#Files in the Directory
+###Files in the Directory
 ----------------------
 
 - input/: input files that describe the corpus in which we want to detect events
