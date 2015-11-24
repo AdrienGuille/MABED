@@ -16,9 +16,11 @@ public class StreamingThread implements Runnable{
 	private String nbMinutes;
 	private String exp;
 	private String keywords;
+        private String coordinates;
+        private String language;
 	private Logger log = AppLogger.getInstance();
 	
-	public StreamingThread(String cs, String c, String ts, String t, String nbMinutes, String exp, String keywords) {
+	public StreamingThread(String cs, String c, String ts, String t, String nbMinutes, String exp, String keys, String geo, String lang) {
 		super();
 		this.cs = cs;
 		this.c = c;
@@ -26,14 +28,32 @@ public class StreamingThread implements Runnable{
 		this.t = t;
 		this.nbMinutes = nbMinutes;
 		this.exp = exp;
-		this.keywords = keywords;
+                if(keys.length() > 0)
+                    this.keywords = keys;
+                else
+                    this.keywords = null;
+                if(geo.length() > 0){
+                    this.coordinates = geo;
+                }else{
+                    this.coordinates = null;
+                }
+                this.language = lang;
 	}
 
 	@Override
 	public void run() {
 		Runtime rt = Runtime.getRuntime();
 		try {
-			ProcessBuilder pb = new ProcessBuilder("java","-jar","mabed-0.1-getTweets.jar","-c",c ,"-cs", cs,"-t", t,"-ts",ts,"-m",nbMinutes,"-e", exp,"-k",keywords);
+			ProcessBuilder pb = null;
+                        if(this.keywords != null){
+                                log.info("keywords: "+keywords);
+                                pb = new ProcessBuilder("java","-jar","mabed-0.1-getTweets.jar","-c",c ,"-cs", cs,"-t", t,"-ts",ts,"-m",nbMinutes,"-e", exp,"-k",keywords,"-lang",language);
+                        }else{
+                            if(this.coordinates != null){
+                                log.info("Coordinates: "+coordinates);
+                                pb = new ProcessBuilder("java","-jar","mabed-0.1-getTweets.jar","-c",c ,"-cs", cs,"-t", t,"-ts",ts,"-m",nbMinutes,"-e", exp,"-geo",coordinates,"-lang",language);
+                            }
+                        }
 			pb.redirectOutput(Redirect.INHERIT);
 			pb.redirectError(Redirect.INHERIT);
 			Process p = pb.start();

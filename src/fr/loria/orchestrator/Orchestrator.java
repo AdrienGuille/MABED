@@ -45,14 +45,21 @@ public class Orchestrator {
 		option.setType(String.class);
 		options.addOption(option);
 		option = new Option("keyword", "keyword", true, "Keywords to use to filter the tweet stream");
-		option.setRequired(true);
+		option.setRequired(false);
 		option.setType(String.class);
+		options.addOption(option);
+                option = new Option("geo", "geolocation", true, "Coordinates (long lat long lat) of the bouding box to use to filter the tweet stream");
+		option.setRequired(false);
+		option.setType(String.class);
+		options.addOption(option);
+                option = new Option("lang", "language", true, "Language of the tweets to collect. Default to 'en'");		option.setRequired(false);
+		option.setType(Float.class);
 		options.addOption(option);
 		option = new Option("e", "exp", true, "Experiment Name : ONE WORD ONLY");
 		option.setRequired(true);
 		option.setType(String.class);
 		options.addOption(option);
-		option = new Option("m", "minutes", true, "Time interval in minutes. Default : 30.");	
+		option = new Option("m", "minutes", true, "Time interval in minutes. Default: 30.");	
 		option.setRequired(false);
 		option.setType(Integer.class);
 		options.addOption(option);
@@ -68,7 +75,7 @@ public class Orchestrator {
 		option.setRequired(false);
 		option.setType(Integer.class);
 		options.addOption(option);
-		option = new Option("p", "keywords", true, "Number of keywords per event. Default to 10.");	
+		option = new Option("p", "nbkeywords", true, "Number of keywords per event. Default to 10.");	
 		option.setRequired(false);
 		option.setType(Integer.class);
 		options.addOption(option);
@@ -105,9 +112,12 @@ public class Orchestrator {
 			String t = line.getOptionValue("t");
 			String cs = line.getOptionValue("cs");
 			String c = line.getOptionValue("c");
-			String e= line.getOptionValue("e");
-			String m= line.getOptionValue("m");
-			String period= line.getOptionValue("period");
+			String e = line.getOptionValue("e");
+			String m = line.getOptionValue("m");
+                        if(m == null){
+                            m = "30";
+                        }
+			String period = line.getOptionValue("period");
 			int nt=1;
 			if (line.hasOption("nt"))
 				nt = Integer.parseInt(line.getOptionValue("nt"));
@@ -129,10 +139,23 @@ public class Orchestrator {
 			float Ms=0.1f;
 			if (line.hasOption("Ms"))
 				Ms = Float.parseFloat(line.getOptionValue("Ms"));
-			String keywords= line.getOptionValue("keyword");
-			for (String s : line.getArgs())
-				keywords += " " + s;
-			
+			String keywords = "";
+                        String coordinates = "";
+                        if (line.hasOption("keyword")){
+                            keywords = line.getOptionValue("keyword");
+                            for (String s : line.getArgs())
+                                    keywords += " " + s;
+                        }else{
+                            if (line.hasOption("geo")){
+                                coordinates = line.getOptionValue("geo");
+                                for (String s : line.getArgs())
+                                    coordinates += " " + s;
+                            }
+                        }
+                        String lang = "en";
+                        if (line.hasOption("lang"))
+				lang = line.getOptionValue("lang");
+                        
 			//Creating the input directory
 			File theDir = new File(e);
 			// if the directory does not exist, create it
@@ -191,11 +214,13 @@ public class Orchestrator {
 			fw.write("token = "+t+"\n");
 			fw.write("secretToken = "+ts+"\n");
 			fw.write("keywords = "+keywords+"\n");
+			fw.write("coordinates = "+coordinates+"\n");
+			fw.write("language = "+lang+"\n");
 			fw.write("period = "+period+"\n");
 			fw.close();
 			log.info("File " + e+"_parameters/parameters.txt created : it sums up the experiment parameters");
 			
-			Runnable r = new StreamingThread(cs, c, ts, t, m, e, keywords);
+			Runnable r = new StreamingThread(cs, c, ts, t, m, e, keywords, coordinates, lang);
 			Thread streaming = new Thread (r);
 			streaming.start();
 			
