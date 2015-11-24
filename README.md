@@ -4,7 +4,8 @@
 Mention-anomaly-based Event Detection and Tracking in Twitter
 
 Author: Adrien GUILLE
-Continuous Version with HTML Report : Nicolas Dugué
+
+Live Version : Nicolas Dugué
 
 Details of this program are described in the following papers:
 
