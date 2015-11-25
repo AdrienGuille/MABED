@@ -43,7 +43,7 @@ Finally, the *orchestrator* jar can be used to handle all the previous jars effi
 ###Obtaining Twitter Tokens
 ----------------------
 
-Twitter tokens are mandatory to use MABED and Live-MABED. Thay allow the application to get data from Twitter.
+Twitter tokens are mandatory to use Live-MABED. Thay allow the application to get data from Twitter.
 To get usable tokens, please follow this link : [https://dev.twitter.com/oauth/overview/application-owner-access-tokens] and especially the section introduced by "At the bottom of the next page, you will see a section labeled “your access token”:".
 
 ###Running the program
@@ -75,13 +75,3 @@ To get usable tokens, please follow this link : [https://dev.twitter.com/oauth/o
 	 -theta,--theta <arg>       Parameter for keyword selection between 0 and
 	                            1. Default to 0.7
 	 -ts,--secrettoken <arg>    Secret Twitter token
-
-###Files in the Directory
-----------------------
-
-- input/: input files that describe the corpus in which we want to detect events
-- MABED.jar: Java program that does the event detection
-- README.txt: this file
-- parameters.txt: Java properties file in which parameters are set
-- stopwords.txt: a list of common stopwords to remove when generating the vocabulary
-- lib/: program dependencies
