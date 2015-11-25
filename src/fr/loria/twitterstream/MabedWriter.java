@@ -70,6 +70,12 @@ public class MabedWriter {
 		fwtime=new FileWriter(new File(timeName));
 		logger.info(txtName + " created > records the textual content of your tweets");
 		logger.info(timeName+ " created > records the timestamp of your tweets");
+		//----------------------------#Fix ISSUE 1
+		//One empty message in each file at least to avoid empty files
+		fwtext.write(" \n");
+		c =Calendar.getInstance();
+		fwtime.write(dateFormat.format(c.getTime())+"\n");
+		//------------------------
 	}
 	public static synchronized void closeAndReopen() throws IOException {
 		close();
