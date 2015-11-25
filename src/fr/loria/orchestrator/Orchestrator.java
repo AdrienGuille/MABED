@@ -131,8 +131,8 @@ public class Orchestrator {
 			if (line.hasOption("theta"))
 				theta = Float.parseFloat(line.getOptionValue("theta"));
 			float sigma=0.5f;
-			if (line.hasOption("p"))
-				sigma = Float.parseFloat(line.getOptionValue("p"));
+			if (line.hasOption("sigma"))
+				sigma = Float.parseFloat(line.getOptionValue("sigma"));
 			float ms=0.01f;
 			if (line.hasOption("ms"))
 				ms = Float.parseFloat(line.getOptionValue("ms"));
