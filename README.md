@@ -54,24 +54,27 @@ To get usable tokens, please follow this link : [https://dev.twitter.com/oauth/o
 	 -c,--consumer <arg>        Consumer key
 	 -cs,--consumerkey <arg>    Secret Consumer key
 	 -e,--exp <arg>             Experiment Name : ONE WORD ONLY
+	 -geo,--geolocation <arg>   Coordinates (long lat long lat) of the bouding
+	                            box to use to filter the tweet stream
 	 -h,--help                  print this message
 	 -k,--events <arg>          Number of events to detect. Default to 20.
 	 -keyword,--keyword <arg>   Keywords to use to filter the tweet stream
-	 -m,--minutes <arg>         Time interval in minutes. Default : 30.
+	 -lang,--language <arg>     Language of the tweets to collect. Default to
+	                            'en'
+	 -m,--minutes <arg>         Time interval in minutes. Default: 30.
 	 -ms,--minsupport <arg>     Parameter for keyword selection between 0 and
-		                    1. Default to 0.01
+	                            1. Default to 0.01
 	 -Ms,--maxsupport <arg>     Parameter for keyword selection between 0 and
-		                    1. Default to 0.1
+	                            1. Default to 0.1
 	 -nt,--thread <arg>         Number of Threads
-	 -p,--keywords <arg>        Number of keywords per event. Default to 10.
+	 -p,--nbkeywords <arg>      Number of keywords per event. Default to 10.
 	 -period,--period <arg>     How many time intervals make a period.
 	 -sigma,--sigma <arg>       Parameter to control event redundancy between
-		                    0 and 1. Default to 0.5
+	                            0 and 1. Default to 0.5
 	 -t,--token <arg>           Twitter token
 	 -theta,--theta <arg>       Parameter for keyword selection between 0 and
-		                    1. Default to 0.7
+	                            1. Default to 0.7
 	 -ts,--secrettoken <arg>    Secret Twitter token
-
 
 ###Files in the Directory
 ----------------------
