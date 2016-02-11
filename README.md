@@ -43,7 +43,7 @@ Finally, the *orchestrator* jar can be used to handle all the previous jars effi
 ###Obtaining Twitter Tokens
 ----------------------
 
-Twitter tokens are mandatory to use MABED and Live-MABED. Thay allow the application to get data from Twitter.
+Twitter tokens are mandatory to use Live-MABED. Thay allow the application to get data from Twitter.
 To get usable tokens, please follow this link : [https://dev.twitter.com/oauth/overview/application-owner-access-tokens] and especially the section introduced by "At the bottom of the next page, you will see a section labeled “your access token”:".
 
 ###Running the program
@@ -54,31 +54,24 @@ To get usable tokens, please follow this link : [https://dev.twitter.com/oauth/o
 	 -c,--consumer <arg>        Consumer key
 	 -cs,--consumerkey <arg>    Secret Consumer key
 	 -e,--exp <arg>             Experiment Name : ONE WORD ONLY
+	 -geo,--geolocation <arg>   Coordinates (long lat long lat) of the bouding
+	                            box to use to filter the tweet stream
 	 -h,--help                  print this message
 	 -k,--events <arg>          Number of events to detect. Default to 20.
 	 -keyword,--keyword <arg>   Keywords to use to filter the tweet stream
-	 -m,--minutes <arg>         Time interval in minutes. Default : 30.
+	 -lang,--language <arg>     Language of the tweets to collect. Default to
+	                            'en'
+	 -m,--minutes <arg>         Time interval in minutes. Default: 30.
 	 -ms,--minsupport <arg>     Parameter for keyword selection between 0 and
-		                    1. Default to 0.01
+	                            1. Default to 0.01
 	 -Ms,--maxsupport <arg>     Parameter for keyword selection between 0 and
-		                    1. Default to 0.1
+	                            1. Default to 0.1
 	 -nt,--thread <arg>         Number of Threads
-	 -p,--keywords <arg>        Number of keywords per event. Default to 10.
+	 -p,--nbkeywords <arg>      Number of keywords per event. Default to 10.
 	 -period,--period <arg>     How many time intervals make a period.
 	 -sigma,--sigma <arg>       Parameter to control event redundancy between
-		                    0 and 1. Default to 0.5
+	                            0 and 1. Default to 0.5
 	 -t,--token <arg>           Twitter token
 	 -theta,--theta <arg>       Parameter for keyword selection between 0 and
-		                    1. Default to 0.7
+	                            1. Default to 0.7
 	 -ts,--secrettoken <arg>    Secret Twitter token
-
-
-###Files in the Directory
-----------------------
-
-- input/: input files that describe the corpus in which we want to detect events
-- MABED.jar: Java program that does the event detection
-- README.txt: this file
-- parameters.txt: Java properties file in which parameters are set
-- stopwords.txt: a list of common stopwords to remove when generating the vocabulary
-- lib/: program dependencies
