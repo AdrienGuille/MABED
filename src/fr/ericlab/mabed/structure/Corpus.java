@@ -59,6 +59,7 @@ public class Corpus {
     public int[] distribution;
     public String output;
     
+    
     // Indexes
     short[][] frequencyMatrix;
     public ArrayList<String> vocabulary;
@@ -70,6 +71,10 @@ public class Corpus {
     public Corpus(Configuration conf){
         configuration = conf;
     }
+    
+    //  Fixing Issue#4
+    private int a;
+    private int b;
        
     public void prepareCorpus(){
         System.out.println(Util.getDate()+" Preparing corpus...");
@@ -87,7 +92,9 @@ public class Corpus {
                 } 
             }
         }
-        int a = Collections.min(list), b = Collections.max(list);
+        //Fixing Issue #4
+        this.a = Collections.min(list);
+        this.b = Collections.max(list);
         
         //If Mabed is continuously used, getPeriod returns the number of files to take into account in the processing.
         if (Configuration.getPeriod() != -1) {
@@ -156,7 +163,10 @@ public class Corpus {
                 }
             }
         }
-        int a = Collections.min(list), b = Collections.max(list);
+        
+      //Fixing Issue #4
+        this.a = Collections.min(list);
+        this.b = Collections.max(list);
       //If Mabed is continuously used, getPeriod returns the number of files to take into account in the processing.
         if (Configuration.getPeriod() != -1) {
         	if ((nbTimeSlices % Configuration.getPeriod()) != 0)
@@ -246,7 +256,8 @@ public class Corpus {
         NumberFormat formatter = FileNameFormatter.getFormatter();
         String mainTerm = event.mainTerm;
         int count = 0;
-        for(int i = event.I.timeSliceA; i <= event.I.timeSliceB; i++){
+      //Fixing Issue #4
+        for(int i = event.I.timeSliceA + this.a; i <= event.I.timeSliceB + this.a; i++){
             try {
                 String filename = Configuration.getPath()+"/"+formatter.format(i)+".text";
                 List<String> lines = FileUtils.readLines(new File(filename));
