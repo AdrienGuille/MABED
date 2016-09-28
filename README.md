@@ -1,3 +1,5 @@
+Nota bene: This Java implementation is not maintained anymore, for an up-to-date implementation, see: https://github.com/AdrienGuille/pyMABED
+
 MABED
 =====
 
